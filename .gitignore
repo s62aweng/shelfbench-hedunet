@@ -1,0 +1,7 @@
+venv/
+renamed_files_log.csv
+__pycache__/
+extents-training/
+template_notebook.ipynb
+extents.ipynb
+figures/
