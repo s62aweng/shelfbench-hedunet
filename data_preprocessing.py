@@ -26,7 +26,7 @@ BAND_MAPPING = {
 }
 """
 
-#TODO: Mismatching fixed, issue was just when the code stops running and is misaligned between pairs. Background isn't working. 0 = ice (white), 1 = everything else
+#TODO: get rid of pairs w masks that are >80% background
 
 # import libraries
 import os
@@ -190,11 +190,9 @@ class SatellitePreprocessor:
         return 10 * np.log10(input_image)
     
     def _normalise_scale(self, input_image,percentile_clip=True):
-        # might have nans - old version using min and max, didn't produced desired high contrast images
-        # image_max = np.nanmax(input_image)
-        # image_min = np.nanmin(input_image)
-        # out_image = (input_image - image_min) / (image_max - image_min)
-
+        """"
+        Should now be fixed?
+        """
         if percentile_clip:
                     # Use percentile clipping to avoid extreme values dominating normalization
             p2, p98 = np.nanpercentile(input_image, [2, 98])
@@ -205,9 +203,10 @@ class SatellitePreprocessor:
                 
                 # Avoid division by zero
         if image_max == image_min:
-            return np.zeros_like(input_image)
-                    
-        out_image = (input_image - image_min) / (image_max - image_min)
+            return input_image
+        elif image_max != image_min:
+            #return np.zeros_like(input_image)
+            out_image = (input_image - image_min) / (image_max - image_min)
             
         return out_image
 
