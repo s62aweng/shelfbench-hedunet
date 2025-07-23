@@ -76,3 +76,9 @@ def train(model: torch.nn.Module, train_dataset: IceDataset, val_dataset: Option
                     # need to check the order, is it good before bad?
                     loss = loss_function(prediction, mask)
                     # save this or do something fun
+
+
+
+"""
+Main: where model is chosen
+"""
