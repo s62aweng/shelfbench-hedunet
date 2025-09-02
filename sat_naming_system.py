@@ -167,7 +167,7 @@ def rename_files(directory, dry_run=True, csv_log_path="renamed_files_log.csv"):
 if __name__ == "__main__":
     # Example usage
     # Change this to your actual directory path
-    base_directory = "/gws/nopw/j04/iecdt/amorgan/benchmark_data_CB"
+    base_directory = "/gws/nopw/j04/iecdt/amorgan/ice-bench-masks-corrected"
     
     # # Do a dry run first to see what would be renamed
     # print("Dry run - no files will be renamed:")
@@ -175,4 +175,4 @@ if __name__ == "__main__":
     
     # Uncomment these lines to actually perform the renaming
     print("\nPerforming actual renaming:")
-    rename_files(base_directory, dry_run=False)
+    rename_files(base_directory, dry_run=True)

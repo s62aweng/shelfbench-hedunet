@@ -1,5 +1,5 @@
 """
-DataLoader for ICE-Bench
+DataLoader for ICE-BENCH
 
 """
 
@@ -21,7 +21,7 @@ class IceDataset(Dataset):
         - augment: whether to apply data augmentation (true for train, false for val/test)
     """
 
-    def __init__(self, mode, parent_dir, augment=True):
+    def __init__(self, mode, parent_dir, augment=True, batch_size: int = 16):
         print(f"Initializing IceDataset in {mode} mode...")
 
         self.mode = mode
