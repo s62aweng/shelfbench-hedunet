@@ -6,7 +6,7 @@ import hydra
 import logging
 import numpy as np
 from sklearn.metrics import precision_score, recall_score, f1_score, jaccard_score
-
+from load_functions import load_model, get_loss_function
 
 
 log = logging.getLogger(__name__)
@@ -72,9 +72,6 @@ def calculate_iou_metrics(targets, predictions, num_classes, device):
     
     mean_iou = class_ious.mean()
     return class_ious.cpu().numpy(), mean_iou.item()
-
-
-
 
 
 def evaluate_model(model_path, val_loader, device, cfg, log):

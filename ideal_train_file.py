@@ -6,6 +6,7 @@ To run all models: uv run ideal_train_file.py -m model.name=Unet,FPN,ViT,DeepLab
 
 
 import os
+import traceback
 import torch
 import gc
 import wandb
@@ -36,11 +37,7 @@ def main(cfg: DictConfig):
 
     # Set random seed
     set_seed(cfg["seed"])
-
-    # TODO: sort out wandb 
     init_wandb(cfg)
-    # Initialize wandb with sweep configuration
-
     print("wandb init done")
 
     # Force CUDA device if available
@@ -63,12 +60,12 @@ def main(cfg: DictConfig):
     best_iou_model_path = os.path.join(cfg["save_dir"], f"{model_name_prefix}_best_iou.pth")
     checkpoint_path = os.path.join(cfg["save_dir"], f"{model_name_prefix}_latest_epoch.pth")
 
-
     # Get data loaders
     train_loader, val_loader = get_data_loaders(cfg)
     log.info("After DataLoader creation")
 
     # Load the model
+    print("Loading model...")
     model = load_model(cfg, device)
 
     # Load loss function, optimizer, and scheduler
@@ -97,6 +94,13 @@ def main(cfg: DictConfig):
     best_val_loss = float("inf")
     best_val_iou = 0.0
 
+    #debug
+    print(f"DEBUG: cfg['training']['epochs'] = {cfg['training']['epochs']}")
+    print(f"DEBUG: type = {type(cfg['training']['epochs'])}")
+    print(f"DEBUG: start_epoch = {start_epoch}")
+    print(f"DEBUG: range will be: {list(range(start_epoch, cfg['training']['epochs']))}")
+
+
     for epoch in range(start_epoch, cfg["training"]["epochs"]):
         print(f"\n{'='*10} Epoch {epoch + 1}/{cfg['training']['epochs']} {'='*10}")
 
@@ -111,14 +115,19 @@ def main(cfg: DictConfig):
             log,
             epoch=epoch,
         )
-
+        print(f"train_one_epoch returned successfully. Loss: {train_loss:.4f}")
+        print("About to call validate_with_metrics...")
+              
         val_metrics = validate_with_metrics(
             model, val_loader, loss_function, device, cfg, log, epoch=epoch
         )
-
+        print(f"validate_with_metrics returned successfully.")
         val_loss = val_metrics['val_loss']
         val_iou = val_metrics['val_iou']
-
+        print(f"Epoch {epoch + 1} Results:")
+        print(f"  Train Loss: {train_loss:.4f}")
+        print(f"  Val Loss: {val_loss:.4f}")
+        print(f"  Val IoU: {val_iou:.4f}")
         # Update scheduler
         if scheduler is not None:
             scheduler.step()
@@ -144,8 +153,9 @@ def main(cfg: DictConfig):
             
             wandb.log(wandb_metrics)
         
+        
 
-
+        print("Checking if this is best model...")
         if val_loss < best_val_loss:
             best_val_loss = val_loss
             print(f"New best loss! Val Loss: {val_loss:.4f}, Val IoU: {val_iou:.4f}")
@@ -168,8 +178,11 @@ def main(cfg: DictConfig):
 
         torch.cuda.empty_cache()
         gc.collect()
+        print(f"EPOCH {epoch + 1} COMPLETED SUCCESSFULLY")
+        print(f"About to continue to next epoch...")
 
-        # Final evaluation
+   
+    # Final evaluation
     print(f"\n{'='*20} Final Evaluation {'='*20}")
     
     if os.path.exists(best_loss_model_path):

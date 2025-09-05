@@ -61,6 +61,7 @@ def save_model(
     scheduler,
     epoch: int,
     val_loss: float,
+    val_iou: float,
     cfg: DictConfig,
     log: logging.Logger,
 ):
@@ -72,6 +73,7 @@ def save_model(
             "optimizer_state_dict": optimizer.state_dict(),
             "scheduler_state_dict": (scheduler.state_dict() if scheduler else None),
             "val_loss": val_loss,
+            "val_iou": val_iou,
             "config": cfg,
         },
         path,
