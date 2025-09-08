@@ -73,7 +73,11 @@ def validate_with_metrics(model, val_loader, loss_function, device, cfg, log, ep
     with torch.no_grad():
         for images, masks in val_loader:
             images = images.to(device)
-            masks = masks.to(device).long()
+
+            # same as in train_one_epoch
+            masks = 1 - (masks / 255)
+            masks = F.one_hot(masks.long(), num_classes=2).squeeze(1).permute(0, 3, 1, 2)
+            
             
             outputs = model(images)
             loss = loss_function(outputs, masks)

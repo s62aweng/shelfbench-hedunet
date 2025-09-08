@@ -6,9 +6,9 @@ submitit_folder: ${hydra.sweep.dir}/.submitit/%j
 exclude: gpuhost013
 timeout_min: 1439
 mem_gb: 40
-cpus_per_task: 8
+cpus_per_task: 4
 partition: orchid
-gres: gpu:4
+gres: gpu:1
 name: ${name}
 qos: orchid
 additional_parameters:
