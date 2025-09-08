@@ -68,12 +68,15 @@ def main(cfg: DictConfig):
     print(f"Using device: {device}")
 
     # save models
-    os.makedirs(cfg["save_dir"], exist_ok=True)
+    base_save_dir = cfg.save_dir
+    model_specific_dir = os.path.join(base_save_dir, cfg.model.name)
+    os.makedirs(model_specific_dir, exist_ok=True)
     # save models with specific names
     model_name_prefix = f"{cfg['model']['name']}_bs{cfg['training']['batch_size']}"
-    best_loss_model_path = os.path.join(cfg["save_dir"], f"{model_name_prefix}_best_loss.pth")
-    best_iou_model_path = os.path.join(cfg["save_dir"], f"{model_name_prefix}_best_iou.pth")
-    checkpoint_path = os.path.join(cfg["save_dir"], f"{model_name_prefix}_latest_epoch.pth")
+    print(f"Model name prefix: {model_name_prefix}")
+    best_loss_model_path = os.path.abspath(os.path.join(model_specific_dir, f"{model_name_prefix}_best_loss.pth"))
+    best_iou_model_path = os.path.abspath(os.path.join(model_specific_dir, f"{model_name_prefix}_best_iou.pth"))
+    checkpoint_path = os.path.abspath(os.path.join(model_specific_dir, f"{model_name_prefix}_latest_epoch.pth"))
 
     # Get data loaders
     train_loader, val_loader = get_data_loaders(cfg)
