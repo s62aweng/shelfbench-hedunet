@@ -7,12 +7,12 @@ defaults:
 
 # Main configuration
 seed: 0
-name: "seg_glacier"
-save_dir: "./models/"
+name: "ice_bench_seg"
+save_dir: "/gws/nopw/j04/iecdt/amorgan/benchmark_data_CB/model_outputs/"
 data_root: "/gws/nopw/j04/iecdt/amorgan/benchmark_data_CB/preprocessed_data/train/images"
 load_path: true
 use_wandb: false
-class_names: ["Background", "Rock"] #, "Glacier", "Ocean_Ice"]
+class_names: ["Ocean", "Ice"]
 log_freq: 200
 save_freq: 1
 num_workers: 4
@@ -38,7 +38,6 @@ training:
   learning_rate: 1e-4
   weight_decay: 1e-4
   epochs: 50
-  class_weight_method: "balanced"
   loss_function: "DiceLoss"
   optimizer: "Adam"
   log_interval: 100
