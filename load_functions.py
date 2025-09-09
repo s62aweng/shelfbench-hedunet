@@ -95,8 +95,6 @@ def load_model(cfg: DictConfig, device: torch.device) -> nn.Module:
         )
         encoder_name = "ViT-Large"
 
-       
-        #TODO: check this works
     elif model_name == "DinoV3":
         img_size = cfg["model"]["img_size"]
         satellite_weights_path = cfg["model"]["satellite_weights_path"]
@@ -134,6 +132,8 @@ def get_loss_function(cfg: DictConfig) -> nn.Module:
         return CombinedLoss(dice_weight=0.5, focal_weight=0.5)
     else:
         raise ValueError(f"Loss function {loss_name} not recognized.")
+    
+    
 
 
 def get_optimizer(cfg: DictConfig, model: nn.Module) -> optim.Optimizer:

@@ -81,7 +81,7 @@ def validate_with_metrics(
     with torch.no_grad():
         for batch_idx, (images, masks) in enumerate(val_loader):
             images = images.to(device)
-
+            masks = masks.to(device)
             # same as in train_one_epoch
             masks = 1 - (masks / 255)
             one_hot_masks = (

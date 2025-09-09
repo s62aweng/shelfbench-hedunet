@@ -95,6 +95,8 @@ def main(cfg: DictConfig):
 
     # Load loss function, optimizer, and scheduler
     loss_function = get_loss_function(cfg)
+    if hasattr(loss_function, 'to'):
+        loss_function = loss_function.to(device)
     optimizer = get_optimizer(cfg, model)
     scheduler = get_scheduler(cfg, optimizer)
 
@@ -131,7 +133,8 @@ def main(cfg: DictConfig):
 
     for epoch in range(start_epoch, cfg["training"]["epochs"]):
         print(f"\n{'='*10} Epoch {epoch + 1}/{cfg['training']['epochs']} {'='*10}")
-
+        print(f"DEBUG: start_epoch={start_epoch}, training.epochs={cfg['training']['epochs']}")
+        print(f"DEBUG: range={list(range(start_epoch, cfg['training']['epochs']))}")
         # Train one epoch
         train_loss = train_one_epoch(
             model,
