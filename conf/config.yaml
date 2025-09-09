@@ -12,7 +12,7 @@ save_dir: "./models/"
 data_root: "/gws/nopw/j04/iecdt/amorgan/benchmark_data_CB/preprocessed_data/train/images"
 load_path: true
 use_wandb: false
-class_names: ["Background", "Rock", "Glacier", "Ocean_Ice"]
+class_names: ["Background", "Rock"] #, "Glacier", "Ocean_Ice"]
 log_freq: 200
 save_freq: 1
 num_workers: 4
