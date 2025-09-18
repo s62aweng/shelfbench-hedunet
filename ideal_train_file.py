@@ -73,8 +73,6 @@ def main(cfg: DictConfig):
     )
 
     #debug
-
-    
     checkpoint_path = os.path.abspath(
         os.path.join(model_specific_dir, f"{model_name_prefix}_latest_epoch.pth")
     )
@@ -124,137 +122,6 @@ def main(cfg: DictConfig):
 
     best_val_loss = float("inf")
     best_val_iou = 0.0
-
-    # # debug
-    # print(f"DEBUG: cfg['training']['epochs'] = {cfg['training']['epochs']}")
-    # print(f"DEBUG: type = {type(cfg['training']['epochs'])}")
-    # print(f"DEBUG: start_epoch = {start_epoch}")
-    # print(
-    #     f"DEBUG: range will be: {list(range(start_epoch, cfg['training']['epochs']))}"
-    # )
-
-    # for epoch in range(start_epoch, cfg["training"]["epochs"]):
-    #     print(f"\n{'='*10} Epoch {epoch + 1}/{cfg['training']['epochs']} {'='*10}")
-    #     print(f"DEBUG: start_epoch={start_epoch}, training.epochs={cfg['training']['epochs']}")
-    #     #print(f"DEBUG: range={list(range(start_epoch, cfg['training']['epochs']))}")
-    #     # Train one epoch
-    #     train_loss = train_one_epoch(
-    #         model,
-    #         train_loader,
-    #         loss_function,
-    #         optimizer,
-    #         device,
-    #         cfg,  # used to be class_names
-    #         log,
-    #         epoch=epoch,
-    #     )
-    #     print(f"train_one_epoch returned successfully. Loss: {train_loss:.4f}")
-    #     print("About to call validate_with_metrics...")
-
-    #     val_metrics = validate_with_metrics(
-    #         model, val_loader, loss_function, device, cfg, log, epoch=epoch
-    #     )
-    #     print(f"validate_with_metrics returned successfully.")
-    #     val_loss = val_metrics["val_loss"]
-    #     val_iou = val_metrics["val_iou"]
-    #     print(f"Epoch {epoch + 1} Results:")
-    #     print(f"  Train Loss: {train_loss:.4f}")
-    #     print(f"  Val Loss: {val_loss:.4f}")
-    #     print(f"  Val IoU: {val_iou:.4f}")
-    #     # Update scheduler
-    #     if scheduler is not None:
-    #         scheduler.step()
-
-    #     if cfg.get("use_wandb", False):
-    #         wandb_metrics = {
-    #             "epoch": epoch,
-    #             "train_loss": train_loss,
-    #             "val_loss": val_loss,
-    #             "val_mean_iou": val_iou,
-    #             "val_mean_precision": val_metrics["mean_precision"],
-    #             "val_mean_recall": val_metrics["mean_recall"],
-    #             "val_mean_f1": val_metrics["mean_f1"],
-    #         }
-
-    #         # # Add class-wise metrics if class names are available
-    #         # if hasattr(cfg, 'class_names') and cfg.class_names:
-    #         #     for i, class_name in enumerate(cfg.class_names):
-    #         #         wandb_metrics[f"val_iou_{class_name}"] = val_metrics['class_ious'][i]
-    #         #         wandb_metrics[f"val_precision_{class_name}"] = val_metrics['precision_per_class'][i]
-    #         #         wandb_metrics[f"val_recall_{class_name}"] = val_metrics['recall_per_class'][i]
-    #         #         wandb_metrics[f"val_f1_{class_name}"] = val_metrics['f1_per_class'][i]
-
-    #         wandb.log(wandb_metrics)
-
-    #     saved_best_model = False
-
-    #     print("Checking if this is best model...")
-    #     if val_loss < best_val_loss:
-    #         best_val_loss = val_loss
-    #         print(f"New best loss! Val Loss: {val_loss:.4f}, Val IoU: {val_iou:.4f}")
-    #         save_model(
-    #             best_loss_model_path,
-    #             model,
-    #             optimizer,
-    #             scheduler,
-    #             epoch,
-    #             val_loss,
-    #             val_iou,
-    #             cfg,
-    #             log,
-    #         )
-
-    #     if val_iou > best_val_iou:
-    #         best_val_iou = val_iou
-    #         print(f"New best IoU! Val Loss: {val_loss:.4f}, Val IoU: {val_iou:.4f}")
-    #         save_model(
-    #             best_iou_model_path,
-    #             model,
-    #             optimizer,
-    #             scheduler,
-    #             epoch,
-    #             val_loss,
-    #             val_iou,
-    #             cfg,
-    #             log,
-    #         )
-
-    #     # Periodic checkpoints
-    #     if epoch % cfg.get("save_freq", 10) == 0:
-    #         checkpoint_save_path = os.path.join(
-    #             model_specific_dir, f"{model_name_prefix}_model_epoch_{epoch}.pth"
-    #         )
-    #         save_model(
-    #             checkpoint_save_path,
-    #             model,
-    #             optimizer,
-    #             scheduler,
-    #             epoch,
-    #             val_loss,
-    #             val_iou,
-    #             cfg,
-    #             log,
-    #         )
-    #         print(f"Checkpoint saved at epoch {epoch}")
-
-    #     # Always save latest
-    #     save_model(
-    #         checkpoint_path,
-    #         model,
-    #         optimizer,
-    #         scheduler,
-    #         epoch,
-    #         val_loss,
-    #         val_iou,
-    #         cfg,
-    #         log,
-    #     )
-
-    #     torch.cuda.empty_cache()
-    #     gc.collect()
-    #     print(f"EPOCH {epoch + 1} COMPLETED SUCCESSFULLY")
-    #     print(f"About to continue to next epoch...")
-    
     
     for epoch in range(start_epoch, cfg["training"]["epochs"]):
         print(f"\n{'='*10} Epoch {epoch + 1}/{cfg['training']['epochs']} {'='*10}")
@@ -341,24 +208,6 @@ def main(cfg: DictConfig):
             )
             print(f"Best IoU model saved/updated: {best_iou_model_path}")
             saved_best_model = True
-
-        # Periodic checkpoints (keep these for recovery)
-        if epoch % cfg.get("save_freq", 10) == 0:
-            checkpoint_save_path = os.path.join(
-                model_specific_dir, f"{model_name_prefix}_checkpoint_epoch_{epoch}.pth"
-            )
-            save_model(
-                checkpoint_save_path,
-                model,
-                optimizer,
-                scheduler,
-                epoch,
-                val_loss,
-                val_iou,
-                cfg,
-                log,
-            )
-            print(f" Periodic checkpoint saved at epoch {epoch}: {checkpoint_save_path}")
 
         # Always update the "latest" checkpoint (for resuming training)
         # This overwrites the previous latest checkpoint every epoch
