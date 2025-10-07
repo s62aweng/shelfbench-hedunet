@@ -1,42 +1,53 @@
-# A Morgan's code for Antarctic Ice Shelf benchmark dataset
+# Morgan’s Code for Antarctic Ice Shelf Benchmark Dataset
 
-### Dataset provided by C Baumhoer, DLR
+## Dataset Information
+**Dataset provided by:** C. Baumhoer, DLR  
 
-### File structure:
-Dataset:
+This dataset supports benchmarking for Antarctic ice shelf analysis using data from multiple satellite sources.
 
-ICE-BENCH
+---
 
------- Envisat
+## 📁 File Structure
 
------------- scenes
+```
+ICE-BENCH/
+│
+├── Envisat/
+│   ├── scenes/
+│   ├── masks/
+│   └── test_envisat/
+│
+├── ERS/
+│   ├── scenes/
+│   ├── masks/
+│   └── test_ERS/
+│
+└── Sentinel-1/
+    ├── scenes/
+    ├── masks/
+    └── test_s1/
+```
 
------------- masks
+---
 
------------- test_envisat
+## ⚙️ Using LaTeX on Jasmin
 
------- ERS
+### 1. Install TeX Live
+Run the installation script:
 
------------- scenes
+```bash
+bash install-texlive.sh
+```
 
------------- masks
+### 2. Update Your PATH
+After installation, add TeX Live to your PATH:
 
------------- test_ERS
-
------- Sentinel-1
-
------------- scenes
-
------------- masks
-
------------- test_s1
-
-
-### Using latex on jasmin
-Install script install-texlive.sh
-
-Run: bash install-texlive.sh
-
-Then:
+```bash
 export PATH="$HOME/texlive/$(date +%Y)/bin/$(ls $HOME/texlive/$(date +%Y)/bin | head -n1):$PATH"
+```
 
+---
+
+## 🧩 Notes
+- Ensure you have sufficient disk space before installing TeX Live — it can take several gigabytes.  
+- Use the provided structure when organizing datasets for reproducibility.  
