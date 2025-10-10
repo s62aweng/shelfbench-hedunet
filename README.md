@@ -47,7 +47,3 @@ export PATH="$HOME/texlive/$(date +%Y)/bin/$(ls $HOME/texlive/$(date +%Y)/bin | 
 ```
 
 ---
-
-## 🧩 Notes
-- Ensure you have sufficient disk space before installing TeX Live — it can take several gigabytes.  
-- Use the provided structure when organizing datasets for reproducibility.  
