@@ -240,25 +240,35 @@ def visualize_ice_front_fixed(
         status = f"✓ {len(pred_boundary)} points" if pred_boundary is not None else "✗ No valid boundary"
         print(f"  {model_name}: {status}")
     
-    # Setup figure
+    # Setup figure with adjusted spacing
     n_models = len(pred_masks)
     fig = plt.figure(figsize=(5 * (n_models + 2), 5))
+    
+    # Create GridSpec for better spacing control
+    gs = fig.add_gridspec(1, n_models + 2, hspace=0.05, wspace=0.15)
     
     # Prepare image for display
     display_image = prepare_image_for_display(image)
     is_grayscale = display_image.ndim == 2
     
     # Panel 1: Raw satellite image
-    ax1 = plt.subplot(1, n_models + 2, 1)
+    ax1 = fig.add_subplot(gs[0, 0])
     if is_grayscale:
         ax1.imshow(display_image, cmap='gray', vmin=0, vmax=1)
     else:
         ax1.imshow(display_image)
     ax1.set_title('Raw Satellite Image', fontsize=12, fontweight='bold')
-    ax1.axis('off')
+    
+    # Add border (before axis('off'))
+    for spine in ax1.spines.values():
+        spine.set_visible(True)
+        spine.set_edgecolor('grey')
+        spine.set_linewidth(1.5)
+    ax1.set_xticks([])
+    ax1.set_yticks([])
     
     # Panel 2: Image + GT boundary
-    ax2 = plt.subplot(1, n_models + 2, 2)
+    ax2 = fig.add_subplot(gs[0, 1])
     if is_grayscale:
         ax2.imshow(display_image, cmap='gray', vmin=0, vmax=1)
     else:
@@ -267,8 +277,15 @@ def visualize_ice_front_fixed(
     ax2.plot(gt_boundary[:, 1], gt_boundary[:, 0],
              color='lime', linewidth=2.5, alpha=0.9, label='GT Ice Front')
     ax2.set_title('Ground Truth\nIce-Ocean Boundary', fontsize=12, fontweight='bold')
-    ax2.axis('off')
     ax2.legend(loc='upper right', fontsize=9, framealpha=0.8)
+    
+    # Add border (before removing ticks)
+    for spine in ax2.spines.values():
+        spine.set_visible(True)
+        spine.set_edgecolor('grey')
+        spine.set_linewidth(1.5)
+    ax2.set_xticks([])
+    ax2.set_yticks([])
     
     # Get resolution once
     pixel_res = get_satellite_resolution(filename)
@@ -276,11 +293,11 @@ def visualize_ice_front_fixed(
     # Panels 3+: Individual model predictions
     legend_elements = []  # For comprehensive legend
     
-    for idx, model_name in enumerate(pred_masks.keys(), 3):
+    for idx, model_name in enumerate(pred_masks.keys(), 2):
         pred_boundary = pred_boundaries[model_name]
         short_name, color = get_model_display_info(model_name)
         
-        ax = plt.subplot(1, n_models + 2, idx)
+        ax = fig.add_subplot(gs[0, idx])
         
         # Display image
         if is_grayscale:
@@ -321,8 +338,15 @@ def visualize_ice_front_fixed(
             )
         
         ax.set_title(title, fontsize=11, fontweight='bold')
-        ax.axis('off')
         ax.legend(loc='upper right', fontsize=8, framealpha=0.8)
+        
+        # Add border (before removing ticks)
+        for spine in ax.spines.values():
+            spine.set_visible(True)
+            spine.set_edgecolor('grey')
+            spine.set_linewidth(1.5)
+        ax.set_xticks([])
+        ax.set_yticks([])
     
     # Overall title
     fig.suptitle(f'Ice-Ocean Boundary Analysis: {filename}',
