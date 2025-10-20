@@ -80,7 +80,7 @@ def s1_new_stem(filename: str) -> str:
     pol = "HH" if ("1SDH" in name or "1SSH" in name) else "UNK"
     # Code
     code = _last_code_token_any_ext(name)
-    return f"{s1_type}_{ymd}_{pol}_EW_GRDM_1SDH_{code}"
+    return f"{s1_type}_{ymd}_{pol}_EW_GRDM_{code}"
 
 
 def _id6_after_1PNESA(filename: str) -> str:
@@ -253,7 +253,7 @@ if __name__ == "__main__":
     rename_everything(
         base,
         dry_run=False,
-        resolve_conflicts="abort",   # safest now that the plan is clean
+        resolve_conflicts="abort",  
         plan_csv="final_plan.csv",
         log_csv="executed_log.csv",
     )

@@ -5,7 +5,6 @@
     
 """
 
-# imports - delete uneeded ones later
 from data_processing.ice_data import IceDataset
 from models.ViT import create_vit_large_16
 from models.DinoV3 import DINOv3SegmentationModel
@@ -116,16 +115,15 @@ def evaluate_single_model(model_path, test_loader, device, cfg, model_name, arch
                 if batch_idx == 0:
                     log.info(f"  Outputs shape: {outputs.shape}")
                 
-                # **HANDLE LOSS CALCULATION FOR MONAI CombinedLoss**
+
                 try:
-                    # For MONAI losses with to_onehot_y=False, it should accept class indices
-                    # But let's try both approaches
+
                     loss = loss_function(outputs, masks)
                     if batch_idx == 0:
                         log.info(f"  Loss computed successfully with class indices: {loss.item():.4f}")
                 except Exception as e1:
                     try:
-                        # Fallback: Try with one-hot encoding
+                        # Try with one-hot encoding
                         masks_one_hot = F.one_hot(masks, num_classes=num_classes).permute(0, 3, 1, 2).float()
                         loss = loss_function(outputs, masks_one_hot)
                         if batch_idx == 0:
@@ -139,13 +137,13 @@ def evaluate_single_model(model_path, test_loader, device, cfg, model_name, arch
 
                 preds = torch.argmax(outputs, dim=1)
 
-                # EFFICIENT: Calculate pixel accuracy directly
+                # Calculate pixel accuracy directly
                 correct_pixels = (preds == masks).sum().item()
                 batch_pixels = masks.numel()
                 total_correct_pixels += correct_pixels
                 total_pixels += batch_pixels
 
-                # Calculate batch metrics using your existing functions
+                # Calculate batch metrics using existing functions
                 batch_precision, batch_recall, batch_f1 = calculate_metrics(
                     masks, preds, num_classes, device
                 )
@@ -155,7 +153,7 @@ def evaluate_single_model(model_path, test_loader, device, cfg, model_name, arch
                 running_recall += batch_recall
                 running_f1 += batch_f1
 
-                # EFFICIENT IoU calculation - accumulate intersections and unions
+                # IoU calculation - accumulate intersections and unions
                 for cls in range(num_classes):
                     pred_cls = (preds == cls)
                     target_cls = (masks == cls)
@@ -165,7 +163,7 @@ def evaluate_single_model(model_path, test_loader, device, cfg, model_name, arch
                     class_intersection_totals[cls] += intersection.item()
                     class_union_totals[cls] += union.item()
 
-                # MEMORY OPTIMIZATION: Only sample some batches for sklearn
+                # Only sample some batches for sklearn
                 if batch_idx % sample_every_n_batches == 0:
                     # Subsample pixels from this batch
                     preds_flat = preds.view(-1).cpu().numpy()
@@ -198,7 +196,7 @@ def evaluate_single_model(model_path, test_loader, device, cfg, model_name, arch
         avg_recall = running_recall / num_batches
         avg_f1 = running_f1 / num_batches
 
-        # EFFICIENT IoU calculation
+        # IoU calculation
         class_ious = []
         for cls in range(num_classes):
             if class_union_totals[cls] > 0:
@@ -229,13 +227,13 @@ def evaluate_single_model(model_path, test_loader, device, cfg, model_name, arch
             "loss": avg_loss,
             "pixel_accuracy": pixel_accuracy,
             "mean_iou": mean_iou,
-            "class_ious": class_ious.tolist(),  # Convert to list for CSV compatibility
+            "class_ious": class_ious.tolist(),  
             "mean_precision": avg_precision.mean(),
             "mean_recall": avg_recall.mean(),
             "mean_f1": avg_f1.mean(),
-            "precision_per_class": avg_precision.tolist(),  # Convert to list for CSV compatibility
-            "recall_per_class": avg_recall.tolist(),  # Convert to list for CSV compatibility
-            "f1_per_class": avg_f1.tolist(),  # Convert to list for CSV compatibility
+            "precision_per_class": avg_precision.tolist(), 
+            "recall_per_class": avg_recall.tolist(), 
+            "f1_per_class": avg_f1.tolist(), 
             # Sklearn verification metrics (sampled)
             "sklearn_accuracy": sklearn_accuracy,
             "sklearn_precision_per_class": sklearn_precision.tolist() if sklearn_precision is not None else None,
@@ -257,7 +255,6 @@ def evaluate_single_model(model_path, test_loader, device, cfg, model_name, arch
     except Exception as e:
         log.error(f"Error evaluating {architecture} - {model_name}: {str(e)}")
         return None
-
 
 
 def run_testing(cfg, class_names=["Ocean", "Ice"]):
@@ -311,7 +308,7 @@ def run_testing(cfg, class_names=["Ocean", "Ice"]):
             log.warning(f"Path does not exist: {arch_path}")
             continue
             
-        #specify specific paths TODO: change this perhaps?
+        #specify specific paths
         model_files = []
         expected_patterns = [
             f"{arch_name}_bs32_correct_labels_latest_epoch.pth",
@@ -353,9 +350,7 @@ def run_testing(cfg, class_names=["Ocean", "Ice"]):
     # Create comprehensive results summary
     if all_results:
         log.info(f"Processing {len(all_results)} results...")
-        
-    
-        # Define output directory
+
         output_dir = Path("/home/users/amorgan/benchmark_CB_AM/visualisation_panels")
         output_dir.mkdir(exist_ok=True)  # Create directory if it doesn't exist
         
@@ -429,7 +424,7 @@ def run_testing(cfg, class_names=["Ocean", "Ice"]):
                 print(results_df.to_string())
                 
                 
-        # Print best model overall (if we have results)
+        # Print best model overall
         if len(results_df) > 0:
             best_model_idx = results_df['mean_iou'].idxmax()
             best_model = results_df.loc[best_model_idx]
@@ -461,38 +456,7 @@ def run_testing(cfg, class_names=["Ocean", "Ice"]):
         log.warning(f"Failed to evaluate {len(failed_models)} models:")
         for failed_model in failed_models:
             log.warning(f"  - {failed_model}")
-    #     # Print summary to console
-    #     print("\n" + "="*80)
-    #     print("ARCHITECTURE COMPARISON SUMMARY")
-    #     print("="*80)
-    #     print(summary_df.round(4))
-        
-    #     # Print best model overall
-    #     best_model_idx = results_df['mean_iou'].idxmax()
-    #     best_model = results_df.loc[best_model_idx]
-    #     print(f"\nBEST MODEL OVERALL:")
-    #     print(f"Architecture: {best_model['architecture']}")
-    #     print(f"Model: {best_model['model_name']}")
-    #     print(f"Mean IoU: {best_model['mean_iou']:.4f}")
-    #     print(f"Pixel Accuracy: {best_model['pixel_accuracy']:.4f}")
-    #     print(f"Mean F1: {best_model['mean_f1']:.4f}")
-        
-    #     # Print class-wise performance for best model
-    #     print(f"\nCLASS-WISE PERFORMANCE (Best Model):")
-    #     for i, class_name in enumerate(class_names):
-    #         print(f"{class_name}:")
-    #         print(f"  IoU: {best_model['class_ious'][i]:.4f}")
-    #         print(f"  Precision: {best_model['precision_per_class'][i]:.4f}")
-    #         print(f"  Recall: {best_model['recall_per_class'][i]:.4f}")
-    #         print(f"  F1: {best_model['f1_per_class'][i]:.4f}")
-    
-    # # Report failed models
-    # if failed_models:
-    #     log.warning(f"Failed to evaluate {len(failed_models)} models:")
-    #     for failed_model in failed_models:
-    #         log.warning(f"  - {failed_model}")
-    
-    # log.info("\nTesting completed!")
+
     
 @hydra.main(config_path="conf", config_name="config", version_base=None)
 def main(cfg):

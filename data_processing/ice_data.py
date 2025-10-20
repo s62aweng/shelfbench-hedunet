@@ -53,10 +53,6 @@ class IceDataset(Dataset):
         if not os.path.exists(self.mask_dir):
             raise ValueError(f"Mask directory does not exist: {self.mask_dir}")
 
-
-
-        # this only works on preprocessed images 
-        # Get all image files (lazy loading - just get count and verify structure)
         self.image_files = sorted(
             [f for f in os.listdir(self.image_dir) if f.endswith((".png"))]
         )
@@ -93,7 +89,7 @@ class IceDataset(Dataset):
                         ],
                         p=0.3,
                     ),
-                    # Optional: Add more SAR-specific augmentations
+
                     A.RandomGamma(gamma_limit=(80, 120), p=0.2),
                 ]
             )
@@ -131,14 +127,10 @@ class IceDataset(Dataset):
         if mask_np is None:
             raise ValueError(f"Could not load mask: {mask_path}")
 
-        # TODO: up to here (2.7.25), check tensor and normalisation things
-
-        # Apply same spatial transformations to both augmentation
         transformed = self.transform(image=image_np, mask=mask_np)
         image_transformed, mask_transformed = transformed["image"], transformed["mask"]
 
-        # TODO: I have already normalised the images so decide whether to keep
-        # Apply normalization only to image
+  
         image_normalized = self.normalize(image=image_transformed)["image"]
 
         image_tensor = torch.from_numpy(image_normalized).float().unsqueeze(0)
@@ -156,16 +148,16 @@ class IceDataset(Dataset):
         Create test dataset from the unified test directory
         Since all test data is now in one location, we create a single dataset
         """
-        # Debug: Print expected path structure
+
         expected_test_dir = os.path.join(parent_dir, "preprocessed_data", "test")
         expected_images_dir = os.path.join(expected_test_dir, "images")
         expected_masks_dir = os.path.join(expected_test_dir, "masks")
         
-        print(f"Debug: Looking for test data at:")
-        print(f"  Images: {expected_images_dir}")
-        print(f"  Masks: {expected_masks_dir}")
-        print(f"  Images exists: {os.path.exists(expected_images_dir)}")
-        print(f"  Masks exists: {os.path.exists(expected_masks_dir)}")
+        # print(f"Debug: Looking for test data at:")
+        # print(f"  Images: {expected_images_dir}")
+        # print(f"  Masks: {expected_masks_dir}")
+        # print(f"  Images exists: {os.path.exists(expected_images_dir)}")
+        # print(f"  Masks exists: {os.path.exists(expected_masks_dir)}")
         
         if os.path.exists(expected_images_dir):
             image_files = os.listdir(expected_images_dir)
@@ -204,24 +196,3 @@ class IceDataset(Dataset):
         
         return test_datasets
     
-    # @staticmethod
-    # def create_test_datasets(parent_dir):
-    #     """
-    #     Create only test datasets
-    #     """
-    #     test_datasets = {}
-        
-    #     try:
-    #         # Create a single test dataset since all satellites are combined
-    #         test_dataset = IceDataset('test', parent_dir, satellite=None, augment=False)
-            
-    #         # For compatibility with existing code that expects satellite-specific datasets,
-    #         # we can create the same dataset reference for each satellite name
-    #         satellites = ['ERS', 'Envisat', 'Sentinel-1']
-    #         for satellite in satellites:
-    #             test_datasets[satellite] = test_dataset
-                
-    #     except Exception as e:
-    #         print(f"Could not load test dataset: {e}")
-        
-    #     return test_datasets

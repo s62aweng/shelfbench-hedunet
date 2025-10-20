@@ -31,7 +31,6 @@ def train_one_epoch(
         image = image.to(device)
         mask = mask.to(device)
 
-        # TODO: Check if the mask really is inverted
         mask = 1 - (mask / 255)
         mask = F.one_hot(mask.long(), num_classes=2).squeeze(1).permute(0, 3, 1, 2)
 
@@ -87,12 +86,7 @@ def validate_with_metrics(
         for batch_idx, (images, masks) in enumerate(val_loader):
             images = images.to(device)
             masks = masks.to(device)
-            # same as in train_one_epoch
-            
-            # this inverts the masks i.e label and image are opposite
-            #masks = 1 - (masks / 255)
-            
-            # not inverted ! updated from 10.9.25
+
             masks = masks / 255
             
             one_hot_masks = (
@@ -164,37 +158,3 @@ def validate_with_metrics(
     }
     print("Returning metrics dictionary.")
     return metrics
-
-
-# Old working val function w/o metrics - keep for reference
-
-# def validate(
-#     model: nn.Module,
-#     val_loader: DataLoader,
-#     loss_function: nn.Module,
-#     device: torch.device,
-#     cfg: DictConfig,
-#     log: logging.Logger,
-#     epoch: int,
-# ) -> float:
-#     model.eval()
-#     val_loss = 0.0
-
-#     with torch.no_grad():
-#         for image, mask in tqdm.tqdm(val_loader, desc=f"Validation Epoch {epoch+1}"):
-#             image = image.to(device)
-#             mask = mask.to(device)
-
-#             mask = 1 - (mask / 255)
-#             mask = F.one_hot(mask.long(), num_classes=2).squeeze(1).permute(0, 3, 1, 2)
-
-#             prediction = model(image)
-
-#             loss = loss_function(prediction, mask)
-#             val_loss += loss.item()
-
-#     val_loss /= len(val_loader)
-
-#     log.info(f"Validation Epoch: {epoch+1} Average Loss: {val_loss:.6f}")
-
-#     return val_loss

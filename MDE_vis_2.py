@@ -10,6 +10,13 @@ from typing import Dict, List, Optional, Tuple
 from omegaconf import DictConfig, OmegaConf
 from scipy.spatial.distance import cdist
 
+plt.rcParams.update({
+    "text.usetex": True,
+    "font.family": "serif", 
+    "font.serif": ["Times"],
+    "font.size": 16 
+})
+
 # Import functions from MDE_2 module
 from MDE_2 import (
     extract_boundary_contour_v2,
@@ -26,16 +33,16 @@ from MDE_2 import (
 )
 
 MODEL_COLORS = {
-    'ViT_best_iou': "#D84040",
-    'Unet_best_iou': "#C950C9",
-    'DeepLabV3_best_iou': "#DAD046",
-    'FPN_best_iou': "#22B77B",
-    'DinoV3_best_iou': "#2E70C6"
+    'ViT_best_iou': "#DDF653",
+    'Unet_best_iou': "#4ED4F9",
+    'DeepLabV3_best_iou': "#0D70FA",
+    'FPN_best_iou': "#55F037",
+    'DinoV3_best_iou': "#3AF2BB"
 }
 
 MODEL_SHORT_NAMES = {
     'ViT_best_iou': 'ViT',
-    'Unet_best_iou': 'U-Net',
+    'Unet_best_iou': 'UNet',
     'DeepLabV3_best_iou': 'DeepLabV3',
     'FPN_best_iou': 'FPN',
     'DinoV3_best_iou': 'DinoV3'
@@ -63,147 +70,6 @@ def calculate_mde_metrics(pred_boundary: np.ndarray,
     mean_dist_px = np.mean(distances.min(axis=1))
     mde_m = mean_dist_px * pixel_res
     return mean_dist_px, mde_m
-
-# ============================================================================
-# VISUALIZATION FUNCTIONS
-# ============================================================================
-
-# def visualize_ice_front_fixed(
-#     image: np.ndarray,
-#     gt_mask: np.ndarray,
-#     pred_masks: Dict[str, np.ndarray],
-#     filename: str,
-#     save_dir: str
-# ) -> None:
-#     """
-#     Optimized visualization - FIXED to avoid double boundary plotting.
-#     Individual model panels now show ONLY the prediction, not GT overlay.
-#     """
-    
-#     # Extract GT boundary
-#     gt_boundary = extract_ice_front_boundary_fixed(
-#         gt_mask, image, background_threshold=1e-6, min_length=10
-#     )
-    
-#     if gt_boundary is None:
-#         print(f"Skipping {filename}: No valid GT ice-ocean boundary")
-#         return
-    
-#     # Extract all predicted boundaries
-#     pred_boundaries = {}
-#     print(f"\n=== {filename} ===")
-#     print(f"GT boundary: {len(gt_boundary)} points")
-    
-#     for model_name, pred_mask in pred_masks.items():
-#         pred_boundary = extract_ice_front_boundary_fixed(
-#             pred_mask, image, background_threshold=1e-6, min_length=50
-#         )
-#         pred_boundaries[model_name] = pred_boundary
-        
-#         status = f"✓ {len(pred_boundary)} points" if pred_boundary is not None else "✗ No valid boundary"
-#         print(f"  {model_name}: {status}")
-    
-#     # Setup figure
-#     n_models = len(pred_masks)
-#     fig = plt.figure(figsize=(5 * (n_models + 2), 5))
-    
-#     # Prepare image for display
-#     display_image = prepare_image_for_display(image)
-#     is_grayscale = display_image.ndim == 2
-    
-#     # Panel 1: Raw satellite image
-#     ax1 = plt.subplot(1, n_models + 2, 1)
-#     if is_grayscale:
-#         ax1.imshow(display_image, cmap='gray', vmin=0, vmax=1)
-#     else:
-#         ax1.imshow(display_image)
-#     ax1.set_title('Raw Satellite Image', fontsize=12, fontweight='bold')
-#     ax1.axis('off')
-    
-#     # Panel 2: Image + GT boundary ONLY
-#     ax2 = plt.subplot(1, n_models + 2, 2)
-#     if is_grayscale:
-#         ax2.imshow(display_image, cmap='gray', vmin=0, vmax=1)
-#     else:
-#         ax2.imshow(display_image)
-    
-#     ax2.plot(gt_boundary[:, 1], gt_boundary[:, 0],
-#              color='lime', linewidth=2.0, alpha=1.0)
-#     ax2.set_title('Ground Truth\nIce-Ocean Boundary', fontsize=12, fontweight='bold')
-#     ax2.axis('off')
-    
-#     # Get resolution once
-#     pixel_res = get_satellite_resolution(filename)
-    
-#     # Panels 3+: Individual model predictions (PREDICTION ONLY - NO GT OVERLAY)
-#     legend_elements = []
-    
-#     for idx, model_name in enumerate(pred_masks.keys(), 3):
-#         pred_boundary = pred_boundaries[model_name]
-#         short_name, color = get_model_display_info(model_name)
-        
-#         ax = plt.subplot(1, n_models + 2, idx)
-        
-#         # Display image
-#         if is_grayscale:
-#             ax.imshow(display_image, cmap='gray', vmin=0, vmax=1)
-#         else:
-#             ax.imshow(display_image)
-        
-#         # ✅ FIXED: Plot ONLY the predicted boundary (no GT overlay)
-#         if pred_boundary is not None:
-#             ax.plot(pred_boundary[:, 1], pred_boundary[:, 0],
-#                     color=color, linewidth=2.0, alpha=1.0)
-            
-#             # Calculate MDE
-#             _, mde_m = calculate_mde_metrics(pred_boundary, gt_boundary, pixel_res)
-#             title = f'{short_name}\nMDE: {mde_m:.1f}m'
-            
-#             # Add to comprehensive legend
-#             legend_elements.append(
-#                 mpatches.Patch(color=color, label=f'{short_name}: {mde_m:.1f}m')
-#             )
-#         else:
-#             # No valid boundary
-#             ax.text(0.5, 0.5, 'Boundary\nExtraction\nFailed', 
-#                    ha='center', va='center', transform=ax.transAxes,
-#                    fontsize=12, color='red', fontweight='bold',
-#                    bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
-#             title = f'{short_name}\nNo Valid Boundary'
-            
-#             legend_elements.append(
-#                 mpatches.Patch(color=color, label=f'{short_name}: N/A')
-#             )
-        
-#         ax.set_title(title, fontsize=11, fontweight='bold')
-#         ax.axis('off')
-    
-#     # Overall title
-#     fig.suptitle(f'Ice-Ocean Boundary Analysis: {filename}',
-#                 fontsize=14, fontweight='bold', y=0.98)
-    
-#     # Add comprehensive legend at bottom
-#     gt_patch = mpatches.Patch(color='lime', label='Ground Truth')
-#     legend_elements.insert(0, gt_patch)
-    
-#     fig.legend(handles=legend_elements, 
-#               loc='lower center', 
-#               ncol=min(6, len(legend_elements)),
-#               fontsize=10,
-#               frameon=True,
-#               fancybox=True,
-#               shadow=True,
-#               bbox_to_anchor=(0.5, -0.02))
-    
-#     plt.tight_layout(rect=[0, 0.03, 1, 0.96])
-    
-#     # Save
-#     os.makedirs(save_dir, exist_ok=True)
-#     save_path = os.path.join(save_dir, f'{os.path.splitext(filename)[0]}_fixed.png')
-#     plt.savefig(save_path, dpi=200, bbox_inches='tight', facecolor='white')
-#     plt.close()
-    
-#     print(f"✓ Saved: {save_path}")
 
 def visualize_ice_front_fixed(
     image: np.ndarray,
@@ -245,7 +111,7 @@ def visualize_ice_front_fixed(
     fig = plt.figure(figsize=(5 * (n_models + 2), 5))
     
     # Create GridSpec for better spacing control
-    gs = fig.add_gridspec(1, n_models + 2, hspace=0.05, wspace=0.15)
+    gs = fig.add_gridspec(1, n_models + 2, hspace=0.1, wspace=0.05)
     
     # Prepare image for display
     display_image = prepare_image_for_display(image)
@@ -257,7 +123,9 @@ def visualize_ice_front_fixed(
         ax1.imshow(display_image, cmap='gray', vmin=0, vmax=1)
     else:
         ax1.imshow(display_image)
-    ax1.set_title('Raw Satellite Image', fontsize=12, fontweight='bold')
+    # Updated with LaTeX formatting and larger font
+    ax1.set_title(r'\textbf{Satellite Image}', fontsize=16, fontweight='bold', pad=15)
+    
     
     # Add border (before axis('off'))
     for spine in ax1.spines.values():
@@ -275,9 +143,12 @@ def visualize_ice_front_fixed(
         ax2.imshow(display_image)
     
     ax2.plot(gt_boundary[:, 1], gt_boundary[:, 0],
-             color='lime', linewidth=2.5, alpha=0.9, label='GT Ice Front')
-    ax2.set_title('Ground Truth\nIce-Ocean Boundary', fontsize=12, fontweight='bold')
-    ax2.legend(loc='upper right', fontsize=9, framealpha=0.8)
+             color='magenta', linewidth=2.5, alpha=0.9, label='GT Ice Front')
+    # Updated with LaTeX formatting
+    ax2.set_title(r'\textbf{Ground Truth}', 
+                  fontsize=16, fontweight='bold', pad=15)
+    ax2.legend(loc='upper right', fontsize=11, framealpha=0.8)
+    
     
     # Add border (before removing ticks)
     for spine in ax2.spines.values():
@@ -291,7 +162,7 @@ def visualize_ice_front_fixed(
     pixel_res = get_satellite_resolution(filename)
     
     # Panels 3+: Individual model predictions
-    legend_elements = []  # For comprehensive legend
+    legend_elements = []
     
     for idx, model_name in enumerate(pred_masks.keys(), 2):
         pred_boundary = pred_boundaries[model_name]
@@ -307,10 +178,9 @@ def visualize_ice_front_fixed(
         
         # GT boundary (faded)
         ax.plot(gt_boundary[:, 1], gt_boundary[:, 0],
-                color='lime', linewidth=1.5, alpha=0.4, 
+                color='magenta', linewidth=2, alpha=0.8, 
                 linestyle='--', label='GT')
         
-        # Predicted boundary
         if pred_boundary is not None:
             ax.plot(pred_boundary[:, 1], pred_boundary[:, 0],
                     color=color, linewidth=2.5, alpha=0.9, 
@@ -318,27 +188,30 @@ def visualize_ice_front_fixed(
             
             # Calculate MDE
             _, mde_m = calculate_mde_metrics(pred_boundary, gt_boundary, pixel_res)
-            title = f'{short_name}\nMDE: {mde_m:.1f}m'
+            # Updated with LaTeX formatting
+            title = rf'\textbf{{{short_name}}}' + '\n' + rf'\textbf{{MDE: {mde_m:.1f}m}}'
             
             # Add to comprehensive legend
             legend_elements.append(
                 mpatches.Patch(color=color, label=f'{short_name}')
             )
         else:
-            # No valid boundary
-            ax.text(0.5, 0.5, 'Boundary\nExtraction\nFailed', 
+            # No valid boundary - updated text formatting
+            ax.text(0.5, 0.5, r'\textbf{Boundary}' + '\n' + r'\textbf{Extraction}' + '\n' + r'\textbf{Failed}', 
                    ha='center', va='center', transform=ax.transAxes,
-                   fontsize=12, color='red', fontweight='bold',
+                   fontsize=14, color='red', fontweight='bold',
                    bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
-            title = f'{short_name}\nNo Valid Boundary'
+            # Updated with LaTeX formatting
+            title = rf'\textbf{{{short_name}}}' + '\n' + r'\textbf{No Valid Boundary}'
             
             # Add to legend with N/A
             legend_elements.append(
                 mpatches.Patch(color=color, label=f'{short_name}: N/A')
             )
         
-        ax.set_title(title, fontsize=11, fontweight='bold')
-        ax.legend(loc='upper right', fontsize=8, framealpha=0.8)
+        ax.set_title(title, fontsize=16, fontweight='bold', pad=5)  # Increased pad significantly
+        ax.legend(loc='upper right', fontsize=9, framealpha=0.8)
+        # ax.axis('off')
         
         # Add border (before removing ticks)
         for spine in ax.spines.values():
@@ -348,20 +221,27 @@ def visualize_ice_front_fixed(
         ax.set_xticks([])
         ax.set_yticks([])
     
-    # Overall title
-    fig.suptitle(f'Ice-Ocean Boundary Analysis: {filename}',
-                fontsize=14, fontweight='bold', y=0.98)
     
-    # Add comprehensive legend at bottom
+    # Add comprehensive legend at bottom 
     fig.legend(handles=legend_elements, 
               loc='lower center', 
               ncol=min(5, len(legend_elements)),
-              fontsize=10,
+              fontsize=15,  # Increased font size
               frameon=True,
               fancybox=True,
               shadow=True,
               bbox_to_anchor=(0.5, -0.02))
     
+    fig.text(0.98, 0.02, rf'\textbf{{{filename}}}',
+             ha='right', va='bottom',  # Right-aligned, bottom-aligned
+             fontsize=14, fontweight='bold',
+             transform=fig.transFigure,
+             bbox=dict(boxstyle='round,pad=0.3', 
+                      facecolor='white', 
+                      alpha=0.7,
+                      edgecolor='black',
+                      linewidth=1))
+ 
     plt.tight_layout(rect=[0, 0.03, 1, 0.96])
     
     # Save
@@ -377,8 +257,7 @@ def create_summary_comparison(
     save_dir: str
 ) -> None:
     """
-    Optimized summary plots with consistent styling and legend.
-    REPLACES both create_summary_visualization and create_summary_comparison.
+    Summary statistics plots
     """
     if not any(results.values()):
         print("No results to visualize")
@@ -537,7 +416,7 @@ def generate_fixed_visualizations(
     
     print(f"Sampling {len(sample_indices)} from {dataset_size} filtered samples...")
     
-    # ✅ Get filenames from filtered dataset
+
     all_filenames = []
     
     # Handle different dataset types

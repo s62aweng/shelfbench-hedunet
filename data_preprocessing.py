@@ -202,9 +202,7 @@ class SatellitePreprocessor:
         return 10 * np.log10(input_image)
     
     def _normalise_scale(self, input_image,percentile_clip=True):
-        """"
-        Should now be fixed?
-        """
+
         if percentile_clip:
                     # Use percentile clipping to avoid extreme values dominating normalization
             p2, p98 = np.nanpercentile(input_image, [2, 98])
@@ -291,12 +289,6 @@ class SatellitePreprocessor:
                     print(f"Error loading image or mask: {img_path}, {mask_path}")
                     continue
             
-
-                #THIS CURRENTLY NORMALISES WHOLE IMAGE WHICH WE DONT WANT TO DO
-                # # Normalise image to uint8 for PNG saving
-                # image_uint8 = self._normalise_image(image, satellite) #whole image
-                # print(f"Normalised image range: {image_uint8.min()} to {image_uint8.max()}")
-
                 ################################################
                 #        Resize to 40m resolution          #
                 ################################################
@@ -339,8 +331,6 @@ class SatellitePreprocessor:
                 for i, (img_patch, mask_patch) in enumerate(zip(image_patches, mask_patches)):
                     y,x = coords[i]
 
-                    # IMPORTANT: Check for background BEFORE normalization
-                    # Use a small tolerance for floating point comparison
                     background_threshold = 1e-6
                     background_mask = np.abs(img_patch) <= background_threshold
                     
@@ -355,9 +345,9 @@ class SatellitePreprocessor:
                     # Additional check after normalization - sometimes normalization can create all-black patches
                     if np.all(normalised_patch == 0) or np.mean(normalised_patch == 0) > 0.8:
                         continue
-                    # Debug: Check patch values after normalization
-                    print(f"Patch {i}: Original range [{img_patch.min():.3f}, {img_patch.max():.3f}] -> "
-                        f"Normalized range [{normalised_patch.min()}, {normalised_patch.max()}]")
+                    # # Debug: Check patch values after normalization
+                    # print(f"Patch {i}: Original range [{img_patch.min():.3f}, {img_patch.max():.3f}] -> "
+                    #     f"Normalized range [{normalised_patch.min()}, {normalised_patch.max()}]")
 
                     #create a patch name
                     patch_name = f"{base_filename}__{pad_h}_{pad_w}_{i}_{y}_{x}.png"
@@ -498,8 +488,7 @@ class SatellitePreprocessor:
     def process_all(self, process_trainval=True, process_test=True):
         """
         Main processing function
-        TODO: Current issue that the train/val split is not 90/10 bc the background check is applied after creating the train test split
-        Currently only accounted this for upping the original split
+
         """
         print("=" * 60)
         print("SATELLITE IMAGERY PREPROCESSING PIPELINE")
@@ -605,6 +594,5 @@ if __name__ == "__main__":
         create_test=True
     )
     
-    #preprocessor.process_all()
-    # choose what to preprocess 
+
     preprocessor.process_all(process_trainval=False, process_test=True)

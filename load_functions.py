@@ -47,6 +47,8 @@ def get_data_loaders(cfg: DictConfig) -> Tuple[DataLoader, DataLoader]:
         # persistent_workers=True,
     )
     
+    # UNCOMMENT TO ENABLE TEST LOADER
+    
     # test_loader = DataLoader(
     #     test_dataset,
     #     batch_size=cfg["training"]["batch_size"],
@@ -95,13 +97,11 @@ def load_model(cfg: DictConfig, device: torch.device) -> nn.Module:
 
     elif model_name == "ViT":
         img_size = cfg["model"]["img_size"]
-        #pretrained_path = cfg["model"]["pretrained_path"]
         model = create_vit_large_16(
             num_classes=classes, 
             img_size=img_size, 
             use_pretrained=True,
             in_channels=in_channels
-            #pretrained_path=pretrained_path
         )
         encoder_name = "ViT-Large"
 
@@ -143,8 +143,6 @@ def get_loss_function(cfg: DictConfig) -> nn.Module:
     else:
         raise ValueError(f"Loss function {loss_name} not recognized.")
     
-    
-
 
 def get_optimizer(cfg: DictConfig, model: nn.Module) -> optim.Optimizer:
     optimizer_name = cfg["training"]["optimizer"]

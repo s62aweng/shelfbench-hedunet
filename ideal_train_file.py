@@ -27,14 +27,7 @@ from torch.cuda.amp import autocast, GradScaler
 
 log = logging.getLogger(__name__)
 
-# Add after imports - dubugging
-import torch
-
-# Check environment variables
-import os
-
 print(f"CUDA_VISIBLE_DEVICES: {os.environ.get('CUDA_VISIBLE_DEVICES', 'Not set')}")
-
 
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(cfg: DictConfig):
@@ -172,7 +165,7 @@ def main(cfg: DictConfig):
             }
             wandb.log(wandb_metrics)
 
-        # Track if we saved a best model this epoch
+        # Track saved a best model this epoch
         saved_best_model = False
         
         # Check and save ONLY if new best loss
@@ -248,26 +241,12 @@ def main(cfg: DictConfig):
             best_loss_model_path, val_loader, device, cfg, log
         )
 
-        # print(f"Best Loss Model Final Metrics:")
-        # print(f"  Loss: {best_loss_metrics['loss']:.4f}")
-        # print(f"  Mean IoU: {best_loss_metrics['mean_iou']:.4f}")
-        # print(f"  Mean Precision: {best_loss_metrics['mean_precision']:.4f}")
-        # print(f"  Mean Recall: {best_loss_metrics['mean_recall']:.4f}")
-        # print(f"  Mean F1: {best_loss_metrics['mean_f1']:.4f}")
-
     # Evaluate best IoU model
     if os.path.exists(best_iou_model_path):
         print("\nEvaluating best IoU model...")
         best_iou_metrics = evaluate_model(
             best_iou_model_path, val_loader, device, cfg, log
         )
-
-        # print(f"Best IoU Model Final Metrics:")
-        # print(f"  Loss: {best_iou_metrics['loss']:.4f}")
-        # print(f"  Mean IoU: {best_iou_metrics['mean_iou']:.4f}")
-        # print(f"  Mean Precision: {best_iou_metrics['mean_precision']:.4f}")
-        # print(f"  Mean Recall: {best_iou_metrics['mean_recall']:.4f}")
-        # print(f"  Mean F1: {best_iou_metrics['mean_f1']:.4f}")
 
     # Final wandb logging
     if cfg.get("use_wandb", False):
