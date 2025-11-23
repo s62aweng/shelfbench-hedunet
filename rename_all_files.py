@@ -18,7 +18,7 @@ Envisat scenes: same
 Envisat vectors: only has the associated date with the scene/mask as .shp, .prj, .dbf, .shx .qmd, .cpg
 
 Names will follow:
-[SATELLITE-ID]_[YYYYMMDD]_[polarization]_[extra]
+[SATELLITE-ID]_[YYYYMMDD]_[polarisation]_[extra]
 
 """
 
@@ -34,7 +34,6 @@ ALLOWED_EXTS = VECTOR_EXTS | RASTER_EXTS
 def is_hidden(p: Path) -> bool:
     return p.name.startswith(".") or p.name.startswith("~$")
 
-# --- helpers --------------------------------------------------------------
 
 def detect_family(path: Path) -> str | None:
     s = str(path)
@@ -136,7 +135,7 @@ def group_vectors(root: Path):
         parts.sort(key=lambda q: (q.suffix.lower() == ".shp"))
     return groups
 
-# --- main ----------------------------------------------------------------
+# main 
 
 def rename_everything(base_dir: str,
                       dry_run: bool = True,
@@ -145,7 +144,6 @@ def rename_everything(base_dir: str,
                       log_csv: str = "renamed_log_all.csv"):
     base = Path(base_dir)
 
-    # 1) Build a plan (old_path -> new_path), grouping shapefiles
     plan = []
     taken = defaultdict(list)
 
@@ -235,7 +233,6 @@ def rename_everything(base_dir: str,
     print(f"Done. Log saved: {log_csv}")
     
     
-import csv, os
 plan = [row for row in csv.reader(open("final_plan.csv")) if "Sentinel-1" in row[0] or "Sentinel-1" in row[1]]
 for src,dst in plan:
     if not os.path.exists(src):

@@ -1,5 +1,5 @@
 """
-DinoV3 model for ICE-BENCH: 
+DinoV3 model for Shelf-BENCH: 
 
 Model: ViT models pretrained on satellite dataset (SAT-493M) - all optical:
 ViT-L/16 distilled	300M	SAT-493M
@@ -155,33 +155,16 @@ class DINOv3SegmentationModel(nn.Module):
         # Convert SAR to RGB
         if C == 1:
             x = self.sar_to_rgb_channels(x, method="repeat")
-        
-        # Extract features using DINOv3 backbone
-        # Get patch embeddings (excluding CLS token)
-        # with torch.no_grad() if hasattr(self, '_freeze_backbone') else torch.enable_grad():
-        #     features = self.backbone.forward_features(x)
-        #     # Remove CLS token and reshape to feature map
-        #     patch_features = features[:, 1:]  # Remove CLS token
-        #     patch_features = patch_features.reshape(B, self.feat_h, self.feat_w, self.embed_dim)
-        #     patch_features = patch_features.permute(0, 3, 1, 2)  # B, C, H, W
-        
-        # Extract features using DINOv3 backbone
-    # Get patch embeddings (excluding CLS token)
-        # Extract features using DINOv3 backbone
+       
         with torch.no_grad() if hasattr(self, '_freeze_backbone') else torch.enable_grad():
             features = self.backbone.forward_features(x)
             
-            # Extract patch tokens (we know it's 'x_norm_patchtokens' from debug output)
             patch_features = features['x_norm_patchtokens']  # Shape: [B, N, D]
-            
-            #print(f"Patch features shape: {patch_features.shape}")
             
             # Reshape to feature map
             # patch_features is [B, N, D] where N = feat_h * feat_w
             patch_features = patch_features.reshape(B, self.feat_h, self.feat_w, self.embed_dim)
             patch_features = patch_features.permute(0, 3, 1, 2)  # B, C, H, W
-            
-            #print(f"Reshaped patch features: {patch_features.shape}")
         
         # Apply segmentation head - need to pass as list for UNet decoder
         seg_logits = self.seg_head([patch_features])  # Pass as list
@@ -224,15 +207,7 @@ class UNetDecoder(nn.Module):
         self.final_conv = nn.Conv2d(decoder_channels[-1], num_classes, kernel_size=1)
     
     def forward(self, features):
-        # features = features[-1]  # Take the deepest features
-        # x = self.center(features)
-        
-        # for i, decoder_block in enumerate(self.blocks):
-        #     skip = None  # No skip connections from encoder for single feature input
-        #     x = decoder_block(x, skip)
-            
-        # x = self.final_conv(x)
-    # Handle list input
+
         if isinstance(features, list):
             features = features[0]  # Take the first feature map
         
@@ -243,8 +218,6 @@ class UNetDecoder(nn.Module):
             x = decoder_block(x, skip)
             
         x = self.final_conv(x)
-
-
         return x
 
 
@@ -319,7 +292,7 @@ def create_dinov3_segmentation_model(
     in_channels: int = 3
 ) -> DINOv3SegmentationModel:
     """
-    Factory function to create DINOv3 segmentation model
+    function to create DINOv3 segmentation model
     
     Args:
         num_classes: Number of segmentation classes
@@ -334,8 +307,7 @@ def create_dinov3_segmentation_model(
     """
     
     if in_channels != 3:
-        print(f"Warning: DINOv3 expects 3 input channels, got {in_channels}. "
-              "Consider preprocessing your data or using a different model.")
+        print(f"Warning: DINOv3 expects 3 input channels, got {in_channels}. ")
     
     model = DINOv3SegmentationModel(
         num_classes=num_classes,
@@ -346,131 +318,3 @@ def create_dinov3_segmentation_model(
     )
     
     return model
-
-
-# # initial set 
-
-# DINOV3_GITHUB_LOCATION = "facebookresearch/dinov3"
-
-# if os.getenv("DINOV3_LOCATION") is not None:
-#     DINOV3_LOCATION = os.getenv("DINOV3_LOCATION")
-# else:
-#     DINOV3_LOCATION = DINOV3_GITHUB_LOCATION
-
-# print(f"DINOv3 location set to {DINOV3_LOCATION}")
-
-# MODEL_DINOV3_VITL = "dinov3_vitl16"
-# MODEL_NAME = MODEL_DINOV3_VITL
-
-# # Path to your satellite-pretrained weights
-# SATELLITE_WEIGHTS_PATH = "/home/users/amorgan/benchmark_CB_AM/models/dinov3_vitl16_pretrain_sat493m-eadcf0ff.pth"
-
-# def load_dinov3_with_satellite_weights():
-#     """Load DINOv3 model with satellite pretrained weights"""
-    
-#     # Load model architecture without pretrained weights
-#     print("Loading DINOv3 model architecture...")
-#     model = torch.hub.load(
-#         repo_or_dir=DINOV3_LOCATION,
-#         model=MODEL_NAME,
-#         pretrained=False,  # Don't load standard pretrained weights
-#         source="local" if DINOV3_LOCATION != DINOV3_GITHUB_LOCATION else "github"
-#     )
-    
-#     # Load the satellite pretrained weights
-#     print(f"Loading satellite pretrained weights from {SATELLITE_WEIGHTS_PATH}...")
-    
-#     if not os.path.exists(SATELLITE_WEIGHTS_PATH):
-#         raise FileNotFoundError(f"Satellite weights file not found: {SATELLITE_WEIGHTS_PATH}")
-    
-#     # Load the state dict
-#     satellite_weights = torch.load(SATELLITE_WEIGHTS_PATH, map_location='cpu')
-    
-#     # Handle different possible formats of saved weights
-#     if 'model' in satellite_weights:
-#         state_dict = satellite_weights['model']
-#     elif 'state_dict' in satellite_weights:
-#         state_dict = satellite_weights['state_dict']
-#     else:
-#         state_dict = satellite_weights
-    
-#     # Remove any prefix if present (e.g., 'module.', 'backbone.', etc.)
-#     cleaned_state_dict = {}
-#     for key, value in state_dict.items():
-#         # Remove common prefixes
-#         clean_key = key
-#         for prefix in ['module.', 'backbone.', 'encoder.', 'model.']:
-#             if clean_key.startswith(prefix):
-#                 clean_key = clean_key[len(prefix):]
-#                 break
-#         cleaned_state_dict[clean_key] = value
-    
-#     # Load the weights into the model
-#     missing_keys, unexpected_keys = model.load_state_dict(cleaned_state_dict, strict=False)
-    
-#     if missing_keys:
-#         print(f"Warning: Missing keys in state dict: {missing_keys}")
-#     if unexpected_keys:
-#         print(f"Warning: Unexpected keys in state dict: {unexpected_keys}")
-    
-#     print("Successfully loaded satellite pretrained weights!")
-#     return model
-
-# # Load the model
-# try:
-#     model = load_dinov3_with_satellite_weights()
-#     model.eval()  # Set to evaluation mode
-#     print("Model loaded successfully and set to evaluation mode")
-    
-#     # Optional: Move to GPU if available
-#     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-#     model = model.to(device)
-#     print(f"Model moved to device: {device}")
-    
-# except Exception as e:
-#     print(f"Error loading model: {str(e)}")
-#     print("Trying alternative loading method...")
-    
-#     # Alternative: Load with pretrained=True first, then replace weights
-#     try:
-#         model = torch.hub.load(
-#             repo_or_dir=DINOV3_LOCATION,
-#             model=MODEL_NAME,
-#             pretrained=True,  # Load with standard weights first
-#             source="local" if DINOV3_LOCATION != DINOV3_GITHUB_LOCATION else "github"
-#         )
-        
-#         # Then load satellite weights
-#         satellite_weights = torch.load(SATELLITE_WEIGHTS_PATH, map_location='cpu')
-        
-#         if 'model' in satellite_weights:
-#             state_dict = satellite_weights['model']
-#         elif 'state_dict' in satellite_weights:
-#             state_dict = satellite_weights['state_dict']
-#         else:
-#             state_dict = satellite_weights
-            
-#         # Clean state dict keys
-#         cleaned_state_dict = {}
-#         for key, value in state_dict.items():
-#             clean_key = key
-#             for prefix in ['module.', 'backbone.', 'encoder.', 'model.']:
-#                 if clean_key.startswith(prefix):
-#                     clean_key = clean_key[len(prefix):]
-#                     break
-#             cleaned_state_dict[clean_key] = value
-        
-#         model.load_state_dict(cleaned_state_dict, strict=False)
-#         model.eval()
-        
-#         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-#         model = model.to(device)
-        
-#         print("Model loaded successfully using alternative method!")
-        
-#     except Exception as e2:
-#         print(f"Alternative loading method also failed: {str(e2)}")
-#         raise e2
-
-
-# print("\nModel setup complete! You can now use the model for feature extraction.")

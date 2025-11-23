@@ -1,6 +1,6 @@
 """
     
-    Test file for ICE-BENCH trained models
+    Test file for Shelf-BENCH trained models
     Evaluates 5 models (UNet, FPN, DeepLabV3, ViT, DinoV3)
     
 """
@@ -37,15 +37,6 @@ log = logging.getLogger(__name__)
 def evaluate_single_model(model_path, test_loader, device, cfg, model_name, architecture):
     """
     Evaluate a single model and return metrics.
-    Args:
-        model_path: Path to the trained model checkpoint
-        test_loader: Test data loader
-        device: Device to run evaluation on
-        cfg: Configuration object
-        model_name: Name of the model for logging
-        architecture: Model architecture name
-    Returns:
-        metrics: Dictionary of evaluation metrics
     """
     log.info(f"Evaluating {architecture} model: {model_name}")
     log.info(f"Loading model from {model_path}")
@@ -208,7 +199,7 @@ def evaluate_single_model(model_path, test_loader, device, cfg, model_name, arch
         class_ious = np.array(class_ious)
         mean_iou = class_ious.mean()
 
-        # OPTIONAL: Calculate sklearn metrics on subset for verification
+        # Calculate sklearn metrics on subset for verification
         sklearn_accuracy = sklearn_precision = sklearn_recall = sklearn_f1 = sklearn_jaccard = None
         if len(sklearn_predictions) > 0:
             sklearn_predictions = np.array(sklearn_predictions)

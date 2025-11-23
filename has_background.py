@@ -1,31 +1,14 @@
 """
-Steps involved for preprocessing the Sentinel-1, ERS and Envisat scenes:
-1. Set a naming convention: in rename_all_files.py [SAT]_[YYYYMMDD]_[POLARISATION]_[SCENE_ID] 
-2. Keep patches at their original res: Envisat and ERS are 30 m, Sentinel-1 is 40 m. 
- - create a val dataset with 10% of the data from the training set
-3. Images are greyscale, masks are greyscale
-4. Patch the images and masks
+Code adapted from data_preprocessing for MDE calculations.
 
-Code inspired by CAFFE - Gourmelon et al. 2022
-
-BAND_MAPPING = {
-    "Sentinel-1": {
-        "HH": 1,  # First band in Sentinel-1 data is HH polarization
-        "HV": 2,  # Second band is HV polarization
-        "DEM": 3, # Third band is DEM (Digital Elevation Model)
-        "RATIO": 4 # Fourth band is HH/HV ratio
-    },
-    "ERS": {
-        "VV": 1,  # First band in ERS data is VV polarization
-        "DEM": 2  # Second band is DEM
-    },
-    "Envisat": {
-        "VV": 1,  # First band in Envisat data is VV polarization
-        "DEM": 2  # Second band is DEM
-    }
-}
+File paths are categorised true (background present) and false (no background present) and saved as a json file. 
+This was because the MDE calculations were calculating ice-background boundaries, skewing the MDE metrics
 """
 
+folder_path = "/gws/nopw/j04/iecdt/amorgan/benchmark_data_CB/ICE-BENCH/background_scenes"
+
+
+# import libraries
 import os
 import cv2
 import numpy as np
@@ -33,35 +16,10 @@ from pathlib import Path
 from sklearn.model_selection import train_test_split
 import pickle
 import threading
+import tqdm
 import rasterio
+import json
 
-# set the path to the data
-"""Structure of data:
-
-benchmark_data_CB
--- Sentinel-1
------- masks
------- scenes
---------- test_s1
--------------- masks
--------------- scenes
--- ERS
------- masks
------- scenes
------- vectors
---------- test_ERS
--------------- masks
--------------- scenes
--- Envisat
-------masks
------- scenes
------- vectors
---------- test_envisat
--------------- masks
--------------- scenes
-"""
-
-# all paths
 parent_dir = "/gws/nopw/j04/iecdt/amorgan/benchmark_data_CB"
 S1_dir = os.path.join(parent_dir, "Sentinel-1")
 ERS_dir = os.path.join(parent_dir, "ERS")
@@ -71,14 +29,7 @@ class SatellitePreprocessor:
     def __init__(self, base_dir, output_dir, patch_size = 256, overlap_train=0, overlap_val =0,
                 create_trainval: bool = True, create_test: bool = True):
 
-        """ 
-        A class to preprocess satellite data for training and validation.
-            base_dir: Path to benchmark_data_CB directory
-            output_dir: Path where processed data will be saved
-            patch_size: Size of extracted patches (default: 256)
-            overlap_train: Overlap for training patches (default: 0)
-            overlap_val: Overlap for validation patches (default: 128)
-        """
+
         self.base_dir = Path(base_dir)
         self.output_dir = Path(output_dir)
         self.patch_size = patch_size
@@ -91,29 +42,6 @@ class SatellitePreprocessor:
             'Envisat': self.base_dir / 'Envisat'
         }
 
-        self._create_output_structure(create_trainval=create_trainval, create_test=create_test)
-
-    def _create_output_structure(self,create_trainval: bool = True, create_test: bool = True):
-        """
-        Create the output directory structure for processed data. 
-        Need to create a val dataset from train
-        Updated to match dataloader expectations:
-        - train/val: output_dir/train/images, output_dir/train/masks
-        - test: output_dir/satellite/test_satellite/scenes, output_dir/satellite/test_satellite/masks
-
-        """
-        if create_trainval:
-            for split in ['train', 'val']:
-                for data_type in ['images', 'masks']:
-                    output_path = self.output_dir / split / data_type
-                    output_path.mkdir(parents=True, exist_ok=True)
-        if create_test:
-            for data_type in ['images', 'masks']:
-                test_path = self.output_dir / 'test' / data_type
-                test_path.mkdir(parents=True, exist_ok=True)
-
-        (self.output_dir /'data_splits').mkdir(exist_ok=True)
-
         
     def _resize_image(self,image,satellite):
         """
@@ -122,7 +50,8 @@ class SatellitePreprocessor:
 
         """
         if satellite in ['ERS', 'Envisat']:
-
+            #downscale to 40m res, i.e 30/40 = 0.75
+            # dont resize for now
             scale_factor = 1
             new_height = int(image.shape[0] * scale_factor)
             new_width = int(image.shape[1] * scale_factor)
@@ -200,7 +129,9 @@ class SatellitePreprocessor:
         return 10 * np.log10(input_image)
     
     def _normalise_scale(self, input_image,percentile_clip=True):
-
+        """"
+        Should now be fixed?
+        """
         if percentile_clip:
                     # Use percentile clipping to avoid extreme values dominating normalization
             p2, p98 = np.nanpercentile(input_image, [2, 98])
@@ -259,7 +190,8 @@ class SatellitePreprocessor:
 
         print(f"Processing {len(file_pairs)} {satellite} files for {split_type}")
         
-        for img_path, mask_path in file_pairs:
+        background_dict = {}
+        for img_path, mask_path in tqdm.tqdm(file_pairs, total=len(file_pairs), desc=f"Processing {satellite} {split_type} files"):
             try:
                 # load image using rasterio
                 with rasterio.open(img_path) as src_img:
@@ -287,6 +219,12 @@ class SatellitePreprocessor:
                     print(f"Error loading image or mask: {img_path}, {mask_path}")
                     continue
             
+
+                #THIS CURRENTLY NORMALISES WHOLE IMAGE WHICH WE DONT WANT TO DO
+                # # Normalise image to uint8 for PNG saving
+                # image_uint8 = self._normalise_image(image, satellite) #whole image
+                # print(f"Normalised image range: {image_uint8.min()} to {image_uint8.max()}")
+
                 ################################################
                 #        Resize to 40m resolution          #
                 ################################################
@@ -315,20 +253,20 @@ class SatellitePreprocessor:
                 #        Save patches to output directory          #
                 #######################################################    
 
-                for i, (img_patch, mask_patch) in enumerate(zip(image_patches, mask_patches)):
                 # choose output directories once (satellite-specific for test)
-                    if split_type == 'test':
-                        img_output_dir = self.output_dir / 'test' / 'images'
-                        mask_output_dir = self.output_dir / 'test' / 'masks'
-                    else:
-                        img_output_dir = self.output_dir / split_type / 'images'
-                        mask_output_dir = self.output_dir / split_type / 'masks'
+                if split_type == 'test':
+                    img_output_dir = self.output_dir / 'test' / 'images'
+                    mask_output_dir = self.output_dir / 'test' / 'masks'
+                else:
+                    img_output_dir = self.output_dir / split_type / 'images'
+                    mask_output_dir = self.output_dir / split_type / 'masks'
 
                 base_filename = img_path.stem
-
                 for i, (img_patch, mask_patch) in enumerate(zip(image_patches, mask_patches)):
-                    y,x = coords[i]
+                    y, x = coords[i]
 
+                    # IMPORTANT: Check for background BEFORE normalization
+                    # Use a small tolerance for floating point comparison
                     background_threshold = 1e-6
                     background_mask = np.abs(img_patch) <= background_threshold
                     
@@ -337,27 +275,26 @@ class SatellitePreprocessor:
                         continue  # Skip saving this patch
                     if np.mean(background_mask) > 0.8:
                         continue
-
-                    normalised_patch = self._normalise_image(img_patch, satellite)
-                    
-                    # Additional check after normalization - sometimes normalization can create all-black patches
-                    if np.all(normalised_patch == 0) or np.mean(normalised_patch == 0) > 0.8:
-                        continue
-
+                    #create a patch name
                     patch_name = f"{base_filename}__{pad_h}_{pad_w}_{i}_{y}_{x}.png"
+                    img_output_path = str(img_output_dir / patch_name)
                     
-                    img_output_path = img_output_dir / patch_name
-                    cv2.imwrite(str(img_output_path), normalised_patch)
-                    
-                    # Save mask patch
-                    mask_output_path = mask_output_dir / patch_name
-                    cv2.imwrite(str(mask_output_path), mask_patch)
+                    if np.any(background_mask):
+                        background_dict[img_output_path] = True
+                    else:
+                        background_dict[img_output_path] = False
 
-                
+        
                 print(f"✓ Processed {base_filename}: {len(image_patches)} patches")
 
             except Exception as e:
                 print(f"Error processing {img_path}: {str(e)}")
+        
+        # save the dictionary:
+        path = self.output_dir / 'background_info' / f"{satellite}_backgrounds.json"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with open(path, 'w') as f:
+            json.dump(background_dict, f, indent=4)
 
     def _get_file_pairs(self, satellite_dir, mode="trainval", satellite_name=None):
         """
@@ -475,7 +412,8 @@ class SatellitePreprocessor:
     def process_all(self, process_trainval=True, process_test=True):
         """
         Main processing function
-
+        TODO: Current issue that the train/val split is not 90/10 bc the background check is applied after creating the train test split
+        Currently only accounted this for upping the original split
         """
         print("=" * 60)
         print("SATELLITE IMAGERY PREPROCESSING PIPELINE")
@@ -565,7 +503,8 @@ class SatellitePreprocessor:
 #Main configuration 
 if __name__ == "__main__":
     BASE_DATA_DIR = "/gws/nopw/j04/iecdt/amorgan/benchmark_data_CB/ICE-BENCH"
-    OUTPUT_DIR = "/gws/nopw/j04/iecdt/amorgan/benchmark_data_CB/ICE-BENCH/preprocessed_data"
+    OUTPUT_DIR = folder_path
+
     PATCH_SIZE = 256
     OVERLAP_TRAIN = 0 
     OVERLAP_VAL = 0
@@ -581,4 +520,6 @@ if __name__ == "__main__":
         create_test=True
     )
     
+    #preprocessor.process_all()
+    # choose what to preprocess 
     preprocessor.process_all(process_trainval=False, process_test=True)

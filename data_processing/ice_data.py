@@ -1,5 +1,5 @@
 """
-DataLoader for ICE-BENCH
+DataLoader for SHELF-BENCH
 
 """
 
@@ -92,7 +92,7 @@ class IceDataset(Dataset):
         return len(self.image_files)
 
     def __getitem__(self, idx):
-        """ "
+        """
         Loads a SAR image, and its corresponding label
         """
         image_name = self.image_files[idx]
@@ -113,24 +113,19 @@ class IceDataset(Dataset):
 
         transformed = self.transform(image=image_np, mask=mask_np)
         image_transformed, mask_transformed = transformed["image"], transformed["mask"]
-
-  
         image_normalized = self.normalize(image=image_transformed)["image"]
 
         image_tensor = torch.from_numpy(image_normalized).float().unsqueeze(0)
 
-        # mask already black and white
         mask_tensor = torch.from_numpy(mask_transformed).float().unsqueeze(0)
 
         return image_tensor, mask_tensor
     
-    
-    #debug
+ 
     @staticmethod
     def create_test_datasets(parent_dir):
         """
-        Create test dataset from the unified test directory
-        Since all test data is now in one location, we create a single dataset
+        Create test dataset 
         """
 
         expected_test_dir = os.path.join(parent_dir, "preprocessed_data", "test")

@@ -1,6 +1,6 @@
 
 """"
-Loading function for ICE-BENCH: trainloader, valloader, models loaded, optimisers and schedulers
+Loading function for Shelf-BENCH: trainloader, valloader, models loaded, optimisers and schedulers
 
 """
 
@@ -23,7 +23,7 @@ from typing import Tuple
 def get_data_loaders(cfg: DictConfig) -> Tuple[DataLoader, DataLoader]:
     parent_dir = cfg["data"]["parent_dir"]
 
-    # Load datasets
+    # Load datasets - uncomment for desired datasets
     train_dataset = IceDataset(mode="train", parent_dir=parent_dir, augment=True)
     val_dataset = IceDataset(mode="val", parent_dir=parent_dir, augment=False)
     #test_dataset = IceDataset(mode="test", parent_dir=parent_dir, augment=False)

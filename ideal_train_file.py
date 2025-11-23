@@ -1,11 +1,10 @@
-"""Main Train file for ICE-BENCH, including HYDRA IMPLEMENTATION
+"""Main Train file for Shelf-BENCH, including HYDRA IMPLEMENTATION and wandb logging.
 
 To run all models: uv run ideal_train_file.py -m model.name=Unet,FPN,ViT,DeepLabV3 other parameters...
 
 """
 
 import os
-import traceback
 import torch
 import gc
 import wandb
@@ -21,7 +20,7 @@ from load_functions import (
     get_loss_function,
 )
 from train_functions import train_one_epoch, validate_with_metrics
-from metrics import calculate_metrics, calculate_iou_metrics, evaluate_model
+from metrics import evaluate_model
 from torch.cuda.amp import autocast, GradScaler
 
 
@@ -31,7 +30,7 @@ print(f"CUDA_VISIBLE_DEVICES: {os.environ.get('CUDA_VISIBLE_DEVICES', 'Not set')
 
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(cfg: DictConfig):
-    # Print the configurationprint("MAIN FUNCTION STARTED")
+
     print("Config keys:", list(cfg.keys()))
     print("Training config:", cfg.training)
     print("Model config:", cfg.model)
@@ -206,8 +205,6 @@ def main(cfg: DictConfig):
             print(f"Best IoU model saved/updated: {best_iou_model_path}")
             saved_best_model = True
 
-        # Always update the "latest" checkpoint (for resuming training)
-        # This overwrites the previous latest checkpoint every epoch
         save_model(
             checkpoint_path,
             model,

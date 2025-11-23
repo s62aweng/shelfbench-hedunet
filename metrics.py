@@ -49,14 +49,7 @@ def calculate_metrics(targets, predictions, num_classes, device):
 def calculate_iou_metrics(targets, predictions, num_classes, device):
     """
     Calculate IoU for each class and mean IoU.
-    Args:
-        targets: Ground truth masks (B, H, W)
-        predictions: Predicted masks (B, H, W)
-        num_classes: Number of classes
-        device: Device to run calculations on
-    Returns:
-        class_ious: IoU for each class
-        mean_iou: Mean IoU across all classes
+
     """
     class_ious = torch.zeros(num_classes, device=device)
     for cls in range(num_classes):
@@ -77,14 +70,7 @@ def calculate_iou_metrics(targets, predictions, num_classes, device):
 def evaluate_model(model_path, val_loader, device, cfg, log):
     """
     Comprehensive model evaluation function.
-    Args:
-        model_path: Path to the trained model checkpoint
-        val_loader: Validation data loader
-        device: Device to run evaluation on
-        cfg: Configuration object
-        log: Logger instance
-    Returns:
-        metrics: Dictionary of evaluation metrics
+
     """
     log.info(f"Loading model from {model_path}")
 

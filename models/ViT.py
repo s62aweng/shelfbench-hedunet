@@ -1,10 +1,7 @@
 """
-Vision transformer for ICE-BENCH
+Vision transformer for SHELF-BENCH
 Using the model: /home/users/amorgan/benchmark_CB_AM/models/ViT-L_16.npz from imagenet21k pre-train + imagenet2012 fine-tuned models (roughly 1 GB)
 downloaded via: wget https://storage.googleapis.com/vit_models/imagenet21k+imagenet2012/ViT-L_16.npz
-
-TODO: This already makes patches, so it will take the 256x256 image, and divide it into 16x16 patches.
-
 
 """
 
@@ -42,7 +39,7 @@ class VisionTransformerConfig:
         self.n_classes = 1000  # ImageNet classes,
         self.resnet = None
 
-# In your ViT.py file, update the ViTSegmentation class:
+
 
 class ViTSegmentation(nn.Module):
     def __init__(self, num_classes=2, img_size=256, use_pretrained=True, in_channels=1):
@@ -440,20 +437,7 @@ class VisionTransformer(nn.Module):
                 if head_bias.shape[0] == self.head.bias.shape[0]:
                     self.head.bias.copy_(head_bias)
 
-# def create_vit_large_16(num_classes=2, img_size=256, pretrained_path=None):
-#     """Create ViT-Large/16 model"""
-#     config = VisionTransformerConfig()
-#     config.n_classes = num_classes
-    
-#     model = VisionTransformer(config, img_size=img_size, num_classes=num_classes)
-    
-#     if pretrained_path:
-#         print(f"Loading pretrained weights from {pretrained_path}")
-#         model.load_from_npz(pretrained_path)
-    
-#     return model
 
-# Update your create function
 def create_vit_large_16(num_classes=2, img_size=256, use_pretrained=True, in_channels=1):
     """Create ViT-Large/16 for segmentation"""
     return ViTSegmentation(
