@@ -1,31 +1,30 @@
-# A.B. Morgan’s Code for Shelf-Bench
-
+# Shelf-Bench dataset repository 🇦🇶
+![Description](figures/antarctica_dataset_fig.png)
 ## Dataset Information
 **Dataset provided by:** C. Baumhoer, DLR  
+Download the Shelf-Bench dataset from: https://zenodo.org/records/17610871
 
-This dataset supports benchmarking for Antarctic ice shelf analysis using data from multiple satellite sources.
+Link to the original paper:
 
+Our trained models are stored in the trained_models.zip
 ---
 
-## 📁 File Structure
+## 1. Preprocess all images and masks
 
 ```
-ICE-BENCH/
-│
-├── Envisat/
-│   ├── scenes/
-│   ├── masks/
-│   └── test_envisat/
-│
-├── ERS/
-│   ├── scenes/
-│   ├── masks/
-│   └── test_ERS/
-│
-└── Sentinel-1/
-    ├── scenes/
-    ├── masks/
-    └── test_s1/
+python data_preprocessing.py
+```
+or 
+```
+uv data_preprocessing.py
 ```
 
+## 2. Apply trained_models to the Shelf-Bench dataset, or train from scratch using:
 
+```
+python ideal_train_file.py -m model.name=CHOOSE MODELS training.loss_function=CHOOSE LOSS FUNCTIONS
+```
+or 
+```
+uv run ideal_train_file.py -m model.name=CHOOSE MODELS training.loss_function=CHOOSE LOSS FUNCTIONS
+```
