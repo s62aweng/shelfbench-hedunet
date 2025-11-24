@@ -28,3 +28,6 @@ or
 ```
 uv run ideal_train_file.py -m model.name=CHOOSE MODELS training.loss_function=CHOOSE LOSS FUNCTIONS
 ```
+
+This code uses Wandb which can be set up using: https://wandb.ai/site/
+

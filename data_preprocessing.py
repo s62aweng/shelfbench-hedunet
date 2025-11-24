@@ -34,6 +34,8 @@ from sklearn.model_selection import train_test_split
 import pickle
 import threading
 import rasterio
+from pathlib import Path
+from paths import ROOT_GWS, ROOT_LOCAL
 
 # set the path to the data
 """Structure of data:
@@ -62,7 +64,7 @@ benchmark_data_CB
 """
 
 # all paths
-parent_dir = "/gws/nopw/j04/iecdt/amorgan/benchmark_data_CB"
+parent_dir = ROOT_GWS / "benchmark_data_CB"
 S1_dir = os.path.join(parent_dir, "Sentinel-1")
 ERS_dir = os.path.join(parent_dir, "ERS")
 Envisat_dir = os.path.join(parent_dir, "Envisat")
@@ -564,8 +566,8 @@ class SatellitePreprocessor:
 
 #Main configuration 
 if __name__ == "__main__":
-    BASE_DATA_DIR = "/gws/nopw/j04/iecdt/amorgan/benchmark_data_CB/ICE-BENCH"
-    OUTPUT_DIR = "/gws/nopw/j04/iecdt/amorgan/benchmark_data_CB/ICE-BENCH/preprocessed_data"
+    BASE_DATA_DIR = ROOT_GWS / "benchmark_data_CB" / "ICE-BENCH" #old name - change to Shelf-Bench
+    OUTPUT_DIR = ROOT_GWS / "benchmark_data_CB" / "ICE-BENCH" / "preprocessed_data"
     PATCH_SIZE = 256
     OVERLAP_TRAIN = 0 
     OVERLAP_VAL = 0

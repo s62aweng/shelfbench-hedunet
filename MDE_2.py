@@ -18,6 +18,8 @@ import matplotlib.pyplot as plt
 import json
 from data_processing.ice_data import IceDataset
 from omegaconf import OmegaConf
+from pathlib import Path
+from paths import ROOT_GWS, ROOT_LOCAL
 
 @dataclass
 class ModelSpec:
@@ -329,8 +331,9 @@ def run_mde_evaluation(models: Dict[str, torch.nn.Module], test_loader: DataLoad
 
 if __name__ == "__main__":
     
-    parent_dir = "/gws/nopw/j04/iecdt/amorgan/benchmark_data_CB/ICE-BENCH"
-    checkpoint_base = "/gws/nopw/j04/iecdt/amorgan/benchmark_data_CB/model_outputs"
+    parent_dir = ROOT_GWS / "benchmark_data_CB" / "ICE-BENCH"
+    checkpoint_base = ROOT_GWS / "benchmark_data_CB" / "model_outputs"
+
     batch_size = 8
     device = prepare_device()
     

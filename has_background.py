@@ -5,8 +5,6 @@ File paths are categorised true (background present) and false (no background pr
 This was because the MDE calculations were calculating ice-background boundaries, skewing the MDE metrics
 """
 
-folder_path = "/gws/nopw/j04/iecdt/amorgan/benchmark_data_CB/ICE-BENCH/background_scenes"
-
 
 # import libraries
 import os
@@ -19,8 +17,12 @@ import threading
 import tqdm
 import rasterio
 import json
+from pathlib import Path
+from paths import ROOT_GWS, ROOT_LOCAL
 
-parent_dir = "/gws/nopw/j04/iecdt/amorgan/benchmark_data_CB"
+
+folder_path = ROOT_GWS / "benchmark_data_CB" / "ICE-BENCH" / "background_scenes"
+parent_dir = ROOT_GWS / "benchmark_data_CB"
 S1_dir = os.path.join(parent_dir, "Sentinel-1")
 ERS_dir = os.path.join(parent_dir, "ERS")
 Envisat_dir = os.path.join(parent_dir, "Envisat")
@@ -502,7 +504,7 @@ class SatellitePreprocessor:
 
 #Main configuration 
 if __name__ == "__main__":
-    BASE_DATA_DIR = "/gws/nopw/j04/iecdt/amorgan/benchmark_data_CB/ICE-BENCH"
+    BASE_DATA_DIR = ROOT_GWS / "benchmark_data_CB" / "ICE-BENCH"
     OUTPUT_DIR = folder_path
 
     PATCH_SIZE = 256

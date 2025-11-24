@@ -5,6 +5,10 @@ defaults:
   - hydra: default
   - override hydra/launcher: slurm
 
+paths:
+  root_local: "/home/users/amorgan/benchmark_CB_AM"
+  root_gws: "/gws/nopw/j04/iecdt/amorgan"
+
 # Main configuration
 seed: 0
 name: "ice_bench_seg"

@@ -25,7 +25,7 @@ Names will follow:
 import os, re, csv
 from pathlib import Path
 from collections import defaultdict
-from pathlib import Path
+from paths import ROOT_GWS, ROOT_LOCAL
 
 VECTOR_EXTS = {".shp",".shx",".dbf",".prj",".cpg",".qpj",".sbn",".sbx",".qix",".fix",".aih",".ain",".xml",".qmd"}
 RASTER_EXTS = {".tif", ".tiff", ".img", ".vrt"}
@@ -246,7 +246,7 @@ for src,dst in plan:
     print("Renamed:", src, "->", final)
 
 if __name__ == "__main__":
-    base = "/gws/nopw/j04/iecdt/amorgan/benchmark_data_CB/ICE-BENCH"
+    base = ROOT_GWS / "benchmark_data_CB" / "ICE-BENCH"
     rename_everything(
         base,
         dry_run=False,

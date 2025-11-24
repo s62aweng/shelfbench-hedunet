@@ -28,6 +28,8 @@ from sklearn.metrics import precision_score, recall_score, f1_score, jaccard_sco
 import logging
 import gc
 import hydra
+from pathlib import Path
+from paths import ROOT_GWS, ROOT_LOCAL
 
 warnings.filterwarnings('ignore')
 log = logging.getLogger(__name__)
@@ -258,7 +260,7 @@ def run_testing(cfg, class_names=["Ocean", "Ice"]):
     log.info(f"Using device: {device}")
     
     # Model architectures and their base paths
-    base_path = "/gws/nopw/j04/iecdt/amorgan/benchmark_data_CB/model_outputs"
+    base_path = ROOT_GWS / "benchmark_data_CB" / "model_outputs"
     architectures = {
         "ViT": os.path.join(base_path, "ViT"),
         "Unet": os.path.join(base_path, "Unet"),
@@ -268,7 +270,7 @@ def run_testing(cfg, class_names=["Ocean", "Ice"]):
     }
     
     # test dataset loading
-    parent_dir = "/gws/nopw/j04/iecdt/amorgan/benchmark_data_CB/ICE-BENCH"
+    parent_dir = ROOT_GWS / "benchmark_data_CB" / "ICE-BENCH"
     test_datasets = IceDataset.create_test_datasets(parent_dir)
     test_dataset = list(test_datasets.values())[0]
     
@@ -342,7 +344,7 @@ def run_testing(cfg, class_names=["Ocean", "Ice"]):
     if all_results:
         log.info(f"Processing {len(all_results)} results...")
 
-        output_dir = Path("/home/users/amorgan/benchmark_CB_AM/visualisation_panels")
+        output_dir = Path(ROOT_GWS) / "benchmark_CB_AM" / "visualisation_panels"
         output_dir.mkdir(exist_ok=True)  # Create directory if it doesn't exist
         
         # Define output files with full paths

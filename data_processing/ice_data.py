@@ -8,7 +8,8 @@ import torch
 from torch.utils.data import Dataset
 import cv2
 import albumentations as A
-
+from pathlib import Path
+from paths import ROOT_GWS, ROOT_LOCAL
 
 class IceDataset(Dataset):
 
