@@ -32,8 +32,8 @@ echo "CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES"
 nvidia-smi
 
 # Daten vorbereiten
-#python "$PROJECT_DIR/prepare_data.py"
+python "$PROJECT_DIR/prepare_data.py"
 
 # Training starten
-python "$PROJECT_DIR/test.py" --config "$PROJECT_DIR/config.yml"
+#python "$PROJECT_DIR/test.py" --config "$PROJECT_DIR/config.yml"
 
