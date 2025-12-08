@@ -24,7 +24,7 @@ datatype   = "PNG" if SAVE_PNG else "Pt"
 OUTPUT_DIR = BASE_DIR / f"Shelf-Bench_{PATCHSIZE}_{datatype}"
 
 # Log directory
-LOG_DIR = Path("/dss/dsshome1/07/di97toj/Git/hed-unet/ai-core-uc3/logs/preprocessing")
+LOG_DIR = Path("/dss/dsstbyfs02/pn49ci/pn49ci-dss-0000/Antartic_Database/git-project/shelf-bench-hedunet/shelfbench-hedunet/logs/preprocessing")
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 
 # Create folder structure
@@ -216,7 +216,7 @@ if __name__ == '__main__':
     satellites = ["ERS", "Envisat", "Sentinel-1"]
     all_train, all_val, all_test = [], [], []
 
-    with open("/dss/dsshome1/07/di97toj/Git/hed-unet/ai-core-uc3/splits.txt","r") as f:
+    with open("/dss/dsstbyfs02/pn49ci/pn49ci-dss-0000/Antartic_Database/git-project/shelf-bench-hedunet/shelfbench-hedunet/splits.txt","r") as f:
         splits = json.load(f)
     train_names = set(splits["train"])
     val_names   = set(splits["val"])
