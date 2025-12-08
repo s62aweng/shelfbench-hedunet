@@ -9,7 +9,7 @@
 # time=48:00:00
 
 # Projektverzeichnis
-PROJECT_DIR="/dss/dsshome1/07/di97toj/Git/hed-unet/ai-core-uc3"
+PROJECT_DIR="/dss/dsstbyfs02/pn49ci/pn49ci-dss-0000/Antartic_Database/git-project/shelf-bench-hedunet/shelfbench-hedunet"
 
 # Micromamba-Modul laden
 module load cuda/12.6.2
