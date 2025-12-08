@@ -1,0 +1,26 @@
+name: hed-unet-env
+channels:
+  - nvidia
+  - pytorch
+  - conda-forge
+dependencies:
+  - python=3.8
+  - pytorch
+  - torchvision
+ # - cudatoolkit=11.0
+  - pytorch-cuda=12.1
+  - rasterio
+  - numpy
+  - matplotlib
+  - pyyaml
+  - scipy
+  - scikit-image
+  - scikit-learn
+  - pandas
+  - opencv
+  - yacs
+  - tqdm
+  - wandb
+  - docopt
+  - albumentations #new
+  - imgaug #new

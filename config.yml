@@ -1,0 +1,64 @@
+# Model Specification
+model: HEDUNet
+model_args:
+  input_channels: [1, 2]
+  base_channels: 8
+  stack_height: 5
+  merging: attention
+  batch_norm: true
+
+# Training Parameters
+feature_pyramid: true
+loss_function:
+  type: AutoBCE
+batch_size: 32 #512
+learning_rate: 0.0001 #0.1
+
+schedule:
+  - phase: Training
+    epochs: 15
+    steps:
+      - train_on: train
+      - validate_on: val
+      #- test_on: test
+
+# Data Configuration
+data_threads: 4
+datasets:
+  train:
+    folders:
+      - train
+    augment: true
+    shuffle: true
+    batch_size: 32
+    num_workers: 4
+
+  val:
+    folders:
+      - val
+    augment: false
+    shuffle: false
+    batch_size: 32
+    num_workers: 4
+
+#  test:
+#    folders:
+#      - ?
+#    augment: false
+#    shuffle: false
+#    batch_size: 4
+#    num_workers: 4
+
+# Visualization
+#visualization_tiles:
+#  - val/S1A_20170702_HH_EW_GRDM_1356__27_44_783_3584_6912
+#  - val/S1A_20180217_HH_EW_GRDM_5126__132_208_269_1536_5888
+#  - val/S1A_20170702_HH_EW_GRDM_1356__27_44_677_3072_7424
+# - val/ENV_20070528_VV_1PNESA20070528__252_143_213_2816_1024
+
+# Visualization
+visualization_tiles:
+  - val/images/ERS_20100520_VV_142439_90.pt
+  - val/images/ERS_20100520_VV_142439_19.pt
+  - val/images/ERS_19941202_VV_222139_5.pt
+  - val/images/ERS_19990219_VV_143256_18.pt
