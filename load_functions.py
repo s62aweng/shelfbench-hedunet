@@ -95,6 +95,19 @@ def load_model(cfg: DictConfig, device: torch.device) -> nn.Module:
             classes=classes,
         )
 
+    elif model_name == "HEDUNet":
+        # Import der Architektur aus deinem neuen Modul
+        from models.hed_unet.deep_learning.model import HEDUNet
+
+        # Parameter aus der Config
+        encoder_name = "HED-UNet"
+        # Falls dein HEDUNet spezielle Argumente braucht, hier ergänzen:
+        model = HEDUNet(
+            in_channels=in_channels,
+            num_classes=classes,
+            # weitere Parameter wie depth, init_features, etc. je nach HEDUNet-Implementierung
+        )
+        
     elif model_name == "ViT":
         img_size = cfg["model"]["img_size"]
         model = create_vit_large_16(

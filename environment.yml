@@ -1,26 +1,44 @@
-name: hed-unet-env
+name: shelfbench-hedunet-env
 channels:
   - nvidia
   - pytorch
   - conda-forge
 dependencies:
-  - python=3.8
+  # Core
+  - python=3.9
+  - pip
   - pytorch
   - torchvision
- # - cudatoolkit=11.0
-  - pytorch-cuda=12.1
-  - rasterio
+  - torchaudio
+  - pytorch-cuda=12.1  # GPU Support
+
+  # Scientific stack
   - numpy
-  - matplotlib
-  - pyyaml
   - scipy
+  - pandas
+  - matplotlib
   - scikit-image
   - scikit-learn
-  - pandas
   - opencv
+
+  # Geospatial
+  - rasterio
+
+  # Config & utils
+  - pyyaml
+  - omegaconf
   - yacs
   - tqdm
-  - wandb
   - docopt
-  - albumentations #new
-  - imgaug #new
+
+  # Deep learning extras
+  - segmentation-models-pytorch
+  - monai
+  - albumentations
+  - imgaug
+  - wandb
+
+  # Install anything missing via pip
+  - pip:
+      - hydra-core
+      - timm   # falls ViT/DINOv3 benötigt wird
