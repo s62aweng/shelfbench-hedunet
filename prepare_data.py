@@ -115,7 +115,7 @@ def extract_patches(scene, mask, patch_size):
     for y in range(0, h, patch_size):
         for x in range(0, w, patch_size):
             s_patch = scene[:, y:y+patch_size, x:x+patch_size]
-            m_patch = mask[:, y:y+patch_size, x:x+patchsize]
+            m_patch = mask[:, y:y+patch_size, x:x+patch_size]
             # Filter: zu viel Hintergrund verwerfen
             if np.mean(s_patch == 0) < MAX_NODATA:
                 patches.append((s_patch, m_patch, x, y))
