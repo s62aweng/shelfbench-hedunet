@@ -216,8 +216,10 @@ if __name__ == '__main__':
     satellites = ["ERS", "Envisat", "Sentinel-1"]
     all_train, all_val, all_test = [], [], []
 
-    with open("/dss/dsstbyfs02/pn49ci/pn49ci-dss-0000/Antartic_Database/git-project/shelf-bench-hedunet/shelfbench-hedunet/splits.txt","r") as f:
+    splits_path = Path(__file__).parent / "splits.txt"
+    with open(splits_path, "r") as f:
         splits = json.load(f)
+
     train_names = set(splits["train"])
     val_names   = set(splits["val"])
     test_names  = set(splits["test"])
