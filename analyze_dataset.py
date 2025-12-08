@@ -2,7 +2,7 @@ import os
 import torch
 import random
 
-def analyze_folder(folder_path, sample_size=5):
+def analyze_folder(folder_path, sample_size=20):
     pt_files = [fn for fn in os.listdir(folder_path) if fn.endswith(".pt")]
     if not pt_files:
         return None
