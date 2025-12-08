@@ -1,6 +1,8 @@
 # Model Specification
 model:
   name: HEDUNet
+  classes: 2        # Anzahl der Segmentation-Klassen (z. B. Eis / Hintergrund)
+  in_channels: 2    # Anzahl der Eingabekanäle (z. B. HH/VV oder RGB)
   args:
     input_channels: [1, 2]
     base_channels: 8

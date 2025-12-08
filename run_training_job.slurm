@@ -19,7 +19,7 @@ module load micromamba
 eval "$(micromamba shell hook --shell bash)"
 
 # Umgebung aktivieren
-micromamba activate hed-unet-env
+micromamba activate shelfbench-hedunet-env
 
 # Sicherheitstest: Python vorhanden?
 if ! command -v python &> /dev/null; then
@@ -32,8 +32,8 @@ echo "CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES"
 nvidia-smi
 
 # Daten vorbereiten
-python "$PROJECT_DIR/prepare_data.py"
+#python "$PROJECT_DIR/prepare_data.py"
 
 # Training starten
-python "$PROJECT_DIR/train.py" --config "$PROJECT_DIR/config.yml"
+python "$PROJECT_DIR/test.py" --config "$PROJECT_DIR/config.yml"
 

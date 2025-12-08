@@ -20,6 +20,7 @@ from omegaconf import DictConfig
 from typing import Tuple
 
 
+
 def get_data_loaders(cfg: DictConfig) -> Tuple[DataLoader, DataLoader]:
     parent_dir = cfg["data"]["parent_dir"]
 
@@ -96,18 +97,23 @@ def load_model(cfg: DictConfig, device: torch.device) -> nn.Module:
         )
 
     elif model_name == "HEDUNet":
-        # Import der Architektur aus deinem neuen Modul
         from models.hed_unet.deep_learning.model import HEDUNet
 
-        # Parameter aus der Config
         encoder_name = "HED-UNet"
-        # Falls dein HEDUNet spezielle Argumente braucht, hier ergänzen:
+
+        # Parameter aus der Config
+        args = cfg["model"]["args"]
+
         model = HEDUNet(
-            in_channels=in_channels,
-            num_classes=classes,
-            # weitere Parameter wie depth, init_features, etc. je nach HEDUNet-Implementierung
+            input_channels=args["input_channels"],   # Liste oder int
+            base_channels=args["base_channels"],     # z.B. 8
+            stack_height=args["stack_height"],       # z.B. 5
+            merging=args["merging"],                 # z.B. "attention"
+            batch_norm=args["batch_norm"],           # True/False
+            num_classes=classes                      # aus cfg["model"]["classes"]
         )
-        
+
+
     elif model_name == "ViT":
         img_size = cfg["model"]["img_size"]
         model = create_vit_large_16(
