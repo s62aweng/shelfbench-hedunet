@@ -35,24 +35,6 @@ for split in ["train","val","test"]:
         (OUTPUT_DIR / split / "images_png").mkdir(parents=True, exist_ok=True)
         (OUTPUT_DIR / split / "masks_png").mkdir(parents=True, exist_ok=True)
 
-# === Helfer: Formate vereinheitlichen ===
-def ensure_chw_np(arr):
-    """Bringt beliebige 2D/3D Arrays robust ins Format (C, H, W)."""
-    if arr.ndim == 2:  # (H, W)
-        return np.expand_dims(arr, 0)
-    if arr.ndim == 3:
-        c, h, w = arr.shape[0], arr.shape[1], arr.shape[2]
-        # Kanal vorne?
-        if c in (1, 2, 3, 4):
-            return arr
-        # Kanal hinten?
-        if arr.shape[-1] in (1, 2, 3, 4):
-            return np.transpose(arr, (2, 0, 1))  # (H, W, C) -> (C, H, W)
-        # Kanal in der Mitte?
-        if arr.shape[1] in (1, 2, 3, 4):
-            return np.transpose(arr, (1, 0, 2))  # (H, C, W) -> (C, H, W)
-    raise ValueError(f"Unexpected shape {arr.shape} for ensure_chw_np")
-
 def normalize_patch(patch):
     """Lokale Normalisierung + Percentile Clipping (pro Kanal)."""
     # patch: (C, H, W)
@@ -142,74 +124,34 @@ def save_patch(split, s_patch, m_patch, base_name, idx):
                     (m_patch[0].astype(np.uint8) * 255))
 
 def process_scene(scene_path, split):
-    """Komplette Verarbeitung einer Szene (erzwingt (C,H,W) vor allem)."""
+    """Komplette Verarbeitung einer Szene (liest nur erstes Band ein)."""
     mask_path = scene_path.parent.parent / 'masks' / scene_path.name
     assert mask_path.exists(), f"{mask_path} doesn't exist!"
 
-    # Szene lesen
+    # Szene lesen – nur erstes Band
     with rio.open(scene_path) as raster:
-        scene_raw = raster.read()
-        # NoData-Werte abfangen
+        scene_raw = raster.read(1)  # -> (H,W)
         if raster.nodata is not None:
             scene_raw = np.where(scene_raw == raster.nodata, 0, scene_raw)
-        # harte Variante: alles unter -1000 auf 0 setzen
         scene_raw[scene_raw < -1000] = 0
 
-    # Maske lesen
+    # Maske lesen – nur erstes Band
     with rio.open(mask_path) as raster:
-        mask_raw = raster.read()
+        mask_raw = raster.read(1)  # -> (H,W)
 
-    # Einheitliches Format erzwingen
-    scene = ensure_chw_np(scene_raw)
-    mask  = ensure_chw_np(mask_raw)
-
-    # Immer nur erstes Band (Graustufen)
-    scene = scene[:1]
-    mask  = mask[:1]
+    # In (C,H,W) bringen
+    scene = np.expand_dims(scene_raw, 0)  # -> (1,H,W)
+    mask  = np.expand_dims(mask_raw, 0)   # -> (1,H,W)
 
     # Padding
     scene = pad_image(scene, PATCHSIZE)
     mask  = pad_image(mask, PATCHSIZE)
 
-    # Patches extrahieren
-    patches = extract_patches(scene, mask, PATCHSIZE)
-    for idx, (s_patch, m_patch, x, y) in enumerate(patches):
-        # Normalisierung auch für .pt
-        norm_patch = normalize_patch(s_patch)
-        img_tensor = torch.from_numpy(norm_patch).float()
-        mask_tensor = torch.from_numpy(m_patch.astype(np.uint8)).to(torch.bool)
-
-        torch.save(img_tensor, OUTPUT_DIR / split / "images" / f"{scene_path.stem}_{idx}.pt")
-        torch.save(mask_tensor, OUTPUT_DIR / split / "masks" / f"{scene_path.stem}_{idx}.pt")
-
-    assert mask_path.exists(), f"{mask_path} doesn't exist!"
-
-    # Szene lesen
-    with rio.open(scene_path) as raster:
-        scene_raw = raster.read()  # (Bands, H, W) oder anderes
-    # Maske lesen
-    with rio.open(mask_path) as raster:
-        mask_raw = raster.read()   # (Bands, H, W) oder anderes
-
-    # Einheitliches Format erzwingen
-    scene = ensure_chw_np(scene_raw)
-    mask  = ensure_chw_np(mask_raw)
-
-    # Falls du IMMER Graustufen willst: nur erstes Band der Szene
-    # (dein Text sagt "Images are greyscale", der Code nahm bisher 2 Bänder)
-    scene = scene[:1]  # -> (1, H, W)
-
-    # Maske nur erstes Band und binär (0/1) lassen
-    mask = mask[:1]    # -> (1, H, W)
-
-    # Padding
-    scene = pad_image(scene, PATCHSIZE)
-    mask = pad_image(mask, PATCHSIZE)
-
     # Patches extrahieren und speichern
     patches = extract_patches(scene, mask, PATCHSIZE)
     for idx, (s_patch, m_patch, x, y) in enumerate(patches):
         save_patch(split, s_patch, m_patch, scene_path.stem, idx)
+
 
 # === Main ===
 if __name__ == '__main__':
@@ -267,7 +209,7 @@ if __name__ == '__main__':
         for f_img, f_mask in zip(img_files, mask_files):
             img = torch.load(f_img, map_location="cpu")
             msk = torch.load(f_mask, map_location="cpu")
-            assert img.ndim == 3 and img.shape[0] in (1,3), f"Bad image shape {img.shape} in {f_img}"
+            assert img.ndim == 3 and img.shape[0] == 1, f"Bad image shape {img.shape} in {f_img}"
             assert msk.ndim == 3 and msk.shape[0] == 1 and msk.dtype == torch.bool, f"Bad mask {msk.shape}/{msk.dtype} in {f_mask}"
 
     # === Logging ===
