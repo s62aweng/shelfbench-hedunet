@@ -104,24 +104,27 @@ def extract_patches(scene, mask, patch_size):
     return patches
 
 def save_patch(split, s_patch, m_patch, base_name, idx):
-    """Speichert einheitlich: images float32 (C,H,W), masks bool (1,H,W)."""
-    # Bild als float32
+    """Speichert einheitlich: images float32 (1,H,W), masks bool (1,H,W)."""
+    # Immer nur erstes Band für das Bild
+    if s_patch.shape[0] != 1:
+        s_patch = s_patch[:1]
+
     img_tensor = torch.from_numpy(s_patch).float()
+
     # Maske auf 1 Kanal reduzieren und in bool konvertieren
     if m_patch.shape[0] != 1:
-        m_patch = m_patch[:1]  # nur erstes Maskenband
+        m_patch = m_patch[:1]
     mask_tensor = torch.from_numpy(m_patch.astype(np.uint8)).to(torch.bool)
 
     torch.save(img_tensor, OUTPUT_DIR / split / "images" / f"{base_name}_{idx}.pt")
     torch.save(mask_tensor, OUTPUT_DIR / split / "masks" / f"{base_name}_{idx}.pt")
 
     if SAVE_PNG:
-        # Images: (C,H,W) -> (H,W,C), danach normalisieren
         png_img = np.moveaxis(normalize_patch(s_patch), 0, -1)
         cv2.imwrite(str(OUTPUT_DIR / split / "images_png" / f"{base_name}_{idx}.png"), png_img)
-        # Maske: erstes Band auf [0,255]
         cv2.imwrite(str(OUTPUT_DIR / split / "masks_png" / f"{base_name}_{idx}.png"),
                     (m_patch[0].astype(np.uint8) * 255))
+
 
 def process_scene(scene_path, split):
     """Komplette Verarbeitung einer Szene (liest nur erstes Band ein)."""
