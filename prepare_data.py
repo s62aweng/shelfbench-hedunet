@@ -198,19 +198,61 @@ if __name__ == '__main__':
             test_dir = None
 
         test_scenes_all = list(test_dir.glob("*.tif")) if test_dir and test_dir.exists() else []
+# === Main ===
+if __name__ == '__main__':
+    satellites = ["ERS", "Envisat", "Sentinel-1"]
+    all_train, all_val, all_test = [], [], []
+
+    splits_path = Path(__file__).parent / "splits.txt"
+    with open(splits_path, "r") as f:
+        splits = json.load(f)
+
+    train_names = set(splits["train"])
+    val_names   = set(splits["val"])
+    test_names  = set(splits["test"])
+
+    for sat in satellites:
+        input_dir = BASE_DIR / "Shelf-Bench-tifs" / sat / "scenes"
+        scenes = list(input_dir.glob("*.tif"))
+
+        # Testdaten liegen in eigenen Unterordnern
+        if sat == "ERS":
+            test_dir = BASE_DIR / "Shelf-Bench-tifs" / sat / "test_ers" / "scenes"
+        elif sat == "Envisat":
+            test_dir = BASE_DIR / "Shelf-Bench-tifs" / sat / "test_envisat" / "scenes"
+        elif sat == "Sentinel-1":
+            test_dir = BASE_DIR / "Shelf-Bench-tifs" / sat / "test_s1" / "scenes"
+        else:
+            test_dir = None
+
+        test_scenes_all = list(test_dir.glob("*.tif")) if test_dir and test_dir.exists() else []
 
         if USE_FIXED_SPLIT:
+            # Prefix-Logik für den aktuellen Satelliten
+            if sat == "Sentinel-1":
+                sat_prefixes = ("S1A", "S1B")   # Sentinel-1 Szenen beginnen mit S1A oder S1B
+            elif sat == "ERS":
+                sat_prefixes = ("ERS",)         # ERS-Szenen beginnen mit ERS
+            elif sat == "Envisat":
+                sat_prefixes = ("ENV",)         # Envisat-Szenen beginnen mit ENV
+            else:
+                sat_prefixes = (sat[:3].upper(),)  # Fallback
+
+            # Train
             train_scenes = [s for s in scenes if s.stem in train_names]
-            not_found_train = train_names - {s.stem for s in scenes}
+            not_found_train = {name for name in train_names if name.startswith(sat_prefixes)} - {s.stem for s in scenes}
             missing_scenes.extend(list(not_found_train))
 
+            # Val
             val_scenes   = [s for s in scenes if s.stem in val_names]
-            not_found_val = val_names - {s.stem for s in scenes}
+            not_found_val = {name for name in val_names if name.startswith(sat_prefixes)} - {s.stem for s in scenes}
             missing_scenes.extend(list(not_found_val))
 
+            # Test
             test_scenes  = [s for s in test_scenes_all if s.stem in test_names]
-            not_found_test = test_names - {s.stem for s in test_scenes_all}
+            not_found_test = {name for name in test_names if name.startswith(sat_prefixes)} - {s.stem for s in test_scenes_all}
             missing_scenes.extend(list(not_found_test))
+
         else:
             train_scenes, test_scenes = train_test_split(scenes, test_size=TEST_SIZE, random_state=42)
             train_scenes, val_scenes  = train_test_split(train_scenes, test_size=VAL_SIZE, random_state=42)
