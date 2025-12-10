@@ -98,10 +98,19 @@ def extract_patches(scene, mask, patch_size):
         for x in range(0, w, patch_size):
             s_patch = scene[:, y:y+patch_size, x:x+patch_size]
             m_patch = mask[:, y:y+patch_size, x:x+patch_size]
-            # Filter: zu viel Hintergrund verwerfen
-            if np.mean(s_patch == 0) < MAX_NODATA:
-                patches.append((s_patch, m_patch, x, y))
+
+            # Hintergrundmaske: Pixel mit Wert 0 gelten als Hintergrund
+            background_mask = (s_patch == 0)
+
+            # Verwerfen, wenn Patch komplett Hintergrund oder >80% Hintergrund
+            if np.all(background_mask):
+                continue
+            if np.mean(background_mask) > 0.8:
+                continue
+
+            patches.append((s_patch, m_patch, x, y))
     return patches
+
 
 def save_patch(split, s_patch, m_patch, base_name, idx):
     """Speichert einheitlich: images float32 (1,H,W), masks bool (1,H,W)."""
