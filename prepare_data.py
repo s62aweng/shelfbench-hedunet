@@ -170,6 +170,9 @@ def process_scene(scene_path, split):
     for idx, (s_patch, m_patch, x, y) in enumerate(patches):
         save_patch(split, s_patch, m_patch, scene_path.stem, idx)
 
+    print(f"{scene_path.stem}: {len(patches)} patches")
+
+
 # === Main ===
 if __name__ == '__main__':
     satellites = ["ERS", "Envisat", "Sentinel-1"]
@@ -278,6 +281,10 @@ if __name__ == '__main__':
             msk = torch.load(f_mask, map_location="cpu")
             assert img.ndim == 3 and img.shape[0] == 1, f"Bad image shape {img.shape} in {f_img}"
             assert msk.ndim == 3 and msk.shape[0] == 1 and msk.dtype == torch.bool, f"Bad mask {msk.shape}/{msk.dtype} in {f_mask}"
+
+    print(f"Train total patches: {sum(len(list((OUTPUT_DIR/'train'/'images').glob('*.pt'))))}")
+    print(f"Val total patches:   {sum(len(list((OUTPUT_DIR/'val'/'images').glob('*.pt'))))}")
+    print(f"Test total patches:  {sum(len(list((OUTPUT_DIR/'test'/'images').glob('*.pt'))))}")
 
     # === Logging ===
     log_file = LOG_DIR / "preprocessing_log.txt"
