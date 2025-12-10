@@ -12,7 +12,7 @@ import os
 
 # === Konfiguration ===
 PATCHSIZE  = 256   # Patchgröße in Pixeln
-MAX_NODATA = 0.2   # maximaler Anteil Nodata pro Patch
+MAX_NODATA = 0.8   # Schwelle für Hintergrundanteil: Patches mit >80% Hintergrund werden verworfen
 SAVE_PNG   = False # False = nur .pt, True = zusätzlich PNG
 TEST_SIZE  = 0.2   # Anteil Testdaten
 VAL_SIZE   = 0.1   # Anteil Validierungsdaten
@@ -26,6 +26,10 @@ OUTPUT_DIR = BASE_DIR / f"Shelf-Bench_{PATCHSIZE}_{datatype}"
 # Log directory
 LOG_DIR = Path("/dss/dsstbyfs02/pn49ci/pn49ci-dss-0000/Antartic_Database/git-project/shelf-bench-hedunet/shelfbench-hedunet/logs/preprocessing")
 LOG_DIR.mkdir(parents=True, exist_ok=True)
+
+#lists to track missing files
+missing_scenes = []
+missing_masks = []
 
 # Create folder structure
 for split in ["train","val","test"]:
@@ -99,13 +103,12 @@ def extract_patches(scene, mask, patch_size):
             s_patch = scene[:, y:y+patch_size, x:x+patch_size]
             m_patch = mask[:, y:y+patch_size, x:x+patch_size]
 
-            # Hintergrundmaske: Pixel mit Wert 0 gelten als Hintergrund
             background_mask = (s_patch == 0)
 
-            # Verwerfen, wenn Patch komplett Hintergrund oder >80% Hintergrund
+            # Verwerfen, wenn Patch komplett Hintergrund oder > MAX_NODATA Anteil Hintergrund
             if np.all(background_mask):
                 continue
-            if np.mean(background_mask) > 0.8:
+            if np.mean(background_mask) > MAX_NODATA:   # nutzt die Konfigurationsvariable
                 continue
 
             patches.append((s_patch, m_patch, x, y))
@@ -138,7 +141,10 @@ def save_patch(split, s_patch, m_patch, base_name, idx):
 def process_scene(scene_path, split):
     """Komplette Verarbeitung einer Szene (liest nur erstes Band ein)."""
     mask_path = scene_path.parent.parent / 'masks' / scene_path.name
-    assert mask_path.exists(), f"{mask_path} doesn't exist!"
+    if not mask_path.exists():
+        missing_masks.append(scene_path.stem)
+        return  # Szene überspringen
+
 
     # Szene lesen – nur erstes Band
     with rio.open(scene_path) as raster:
@@ -163,7 +169,6 @@ def process_scene(scene_path, split):
     patches = extract_patches(scene, mask, PATCHSIZE)
     for idx, (s_patch, m_patch, x, y) in enumerate(patches):
         save_patch(split, s_patch, m_patch, scene_path.stem, idx)
-
 
 # === Main ===
 if __name__ == '__main__':
@@ -196,8 +201,16 @@ if __name__ == '__main__':
 
         if USE_FIXED_SPLIT:
             train_scenes = [s for s in scenes if s.stem in train_names]
+            not_found_train = train_names - {s.stem for s in scenes}
+            missing_scenes.extend(list(not_found_train))
+
             val_scenes   = [s for s in scenes if s.stem in val_names]
+            not_found_val = val_names - {s.stem for s in scenes}
+            missing_scenes.extend(list(not_found_val))
+
             test_scenes  = [s for s in test_scenes_all if s.stem in test_names]
+            not_found_test = test_names - {s.stem for s in test_scenes_all}
+            missing_scenes.extend(list(not_found_test))
         else:
             train_scenes, test_scenes = train_test_split(scenes, test_size=TEST_SIZE, random_state=42)
             train_scenes, val_scenes  = train_test_split(train_scenes, test_size=VAL_SIZE, random_state=42)
@@ -236,7 +249,21 @@ if __name__ == '__main__':
         f.write(f"USE_FIXED_SPLIT: {USE_FIXED_SPLIT}\n")
         f.write(f"Train scenes: {len(all_train)}\n")
         f.write(f"Val scenes: {len(all_val)}\n")
-        f.write(f"Test scenes: {len(all_test)}\n")
+        f.write(f"Test scenes: {len(all_test)}\n\n")
+
+        if missing_scenes:
+            f.write("Scenes listed in split.txt but not found in scenes folder:\n")
+            f.write(f"{len(missing_scenes)} Szenen fehlen im scenes-Ordner:\n")
+            for s in missing_scenes:
+                f.write(f"  - {s}\n")
+            f.write("\n")
+
+        if missing_masks:
+            f.write("Scenes skipped because mask file missing:\n")
+            f.write(f"{len(missing_masks)} Szenen wurden wegen fehlender Maske übersprungen:\n")
+            for s in missing_masks:
+                f.write(f"  - {s}\n")
+            f.write("\n")
 
     # === Beispielplots ===
     example_img = OUTPUT_DIR / "val" / "images" / "ERS_20100520_VV_142439_90.pt"
