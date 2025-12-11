@@ -1,17 +1,17 @@
 #!/bin/bash
-#SBATCH --job-name=hed-unet-training_2
+#SBATCH --job-name=hedunet_shelfbench_training
 #SBATCH --output=logs/training_%j.out
 #SBATCH --error=logs/training_%j.err
 #SBATCH --partition=hpda2_compute_gpu
 #SBATCH --gres=gpu:1
-# cpus-per-task=32
-# mem=128G
-# time=48:00:00
+#SBATCH --cpus-per-task=32
+#SBATCH --mem=128G
+#SBATCH --time=48:00:00
 
 # Projektverzeichnis
 PROJECT_DIR="/dss/dsstbyfs02/pn49ci/pn49ci-dss-0000/Antartic_Database/git-project/shelf-bench-hedunet/shelfbench-hedunet"
 
-# Micromamba-Modul laden
+# Module laden
 module load cuda/12.6.2
 module load micromamba
 
@@ -31,9 +31,8 @@ fi
 echo "CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES"
 nvidia-smi
 
-# Daten vorbereiten
-python "$PROJECT_DIR/prepare_data.py"
-
 # Training starten
-#python "$PROJECT_DIR/test.py" --config "$PROJECT_DIR/config.yml"
-
+python "$PROJECT_DIR/ideal_train_file.py" \
+    --config "$PROJECT_DIR/conf/config.yml" \
+    --model_name "HEDUNet" \
+    --loss_function "HEDUNetLoss"

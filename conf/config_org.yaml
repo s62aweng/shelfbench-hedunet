@@ -1,0 +1,13 @@
+model:
+  name: "HEDUNet"
+  in_channels: 1         # weil IceDataset Graustufen-PNG liefert
+  classes: 2             # Ocean vs. Ice
+  img_size: 256
+  args:
+    input_channels: 1
+    output_channels: 2
+    base_channels: 16
+    stack_height: 5
+    deep_supervision: true
+    merging: "attention"
+    batch_norm: true

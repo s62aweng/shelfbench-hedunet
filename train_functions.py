@@ -68,6 +68,9 @@ def train_one_epoch(
     epoch_loss = running_loss / len(train_loader)
     log.info(f"Train Epoch: {epoch+1} Average Loss: {epoch_loss:.6f}")
 
+    if cfg.get("use_wandb", False):
+        wandb.log({"epoch_train_loss": epoch_loss}, step=epoch)
+
     return epoch_loss
 
 
@@ -178,4 +181,14 @@ def validate_with_metrics(
         "f1_per_class": avg_f1.cpu().numpy(),
     }
     print("Returning metrics dictionary.")
+
+    if cfg.get("use_wandb", False):
+        wandb.log({
+            "val_loss": avg_val_loss,
+            "val_iou": mean_iou,
+            "val_precision": avg_precision.mean().item(),
+            "val_recall": avg_recall.mean().item(),
+            "val_f1": avg_f1.mean().item()
+        }, step=epoch)
+
     return metrics
