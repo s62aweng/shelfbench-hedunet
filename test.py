@@ -30,6 +30,9 @@ import gc
 import hydra
 from pathlib import Path
 from paths import ROOT_GWS, ROOT_LOCAL
+import wandb
+from omegaconf import DictConfig, OmegaConf
+
 
 warnings.filterwarnings('ignore')
 log = logging.getLogger(__name__)
@@ -104,26 +107,28 @@ def evaluate_single_model(model_path, test_loader, device, cfg, model_name, arch
                     log.info(f"  Outputs shape: {outputs.shape if 'outputs' in locals() else 'Not computed yet'}")
                     log.info(f"  Num classes: {num_classes}")
 
+                ##############################################
+                # Anpassung für Hedunet mit Deep Supervision #
+                ##############################################
                 outputs = model(images)
+                if isinstance(outputs, (list, tuple)):
+                    main_output = outputs[0]
+                else:
+                    main_output = outputs
+                preds = torch.argmax(main_output, dim=1)
+                ##############################################
+
                 if batch_idx == 0:
-                    log.info(f"  Outputs shape: {outputs.shape}")
-                
+                    log.info(f"  Outputs shape: {outputs[0].shape if isinstance(outputs, (list, tuple)) else outputs.shape}")
 
-                try:
+                # Convert raw mask (values 0/1) into one-hot [B, C, H, W]
+                masks_one_hot = F.one_hot(masks.long(), num_classes=num_classes).permute(0, 3, 1, 2).float()
 
-                    loss = loss_function(outputs, masks)
-                    if batch_idx == 0:
-                        log.info(f"  Loss computed successfully with class indices: {loss.item():.4f}")
-                except Exception as e1:
-                    try:
-                        # Try with one-hot encoding
-                        masks_one_hot = F.one_hot(masks, num_classes=num_classes).permute(0, 3, 1, 2).float()
-                        loss = loss_function(outputs, masks_one_hot)
-                        if batch_idx == 0:
-                            log.info(f"  Loss computed successfully with one-hot format: {loss.item():.4f}")
-                    except Exception as e2:
-                        log.warning(f"Failed to compute loss: {e1}, {e2}")
-                        loss = torch.tensor(0.0)
+                # Pass one-hot mask to the loss (use full outputs list for HEDUNetLoss)
+                loss = loss_function(outputs, masks_one_hot)
+
+                if batch_idx == 0:
+                    log.info(f"  Loss computed successfully: {loss.item():.4f}")
 
 
                 running_loss += loss.item()
@@ -237,6 +242,15 @@ def evaluate_single_model(model_path, test_loader, device, cfg, model_name, arch
 
         log.info(f"Completed evaluation for {architecture} - {model_name}")
         log.info(f"Mean IoU: {mean_iou:.4f}, Pixel Accuracy: {pixel_accuracy:.4f}")
+
+        if cfg.get("use_wandb", False):
+            wandb.log({
+                "test_loss": avg_loss,
+                "test_iou": mean_iou,
+                "test_precision": avg_precision.mean(),
+                "test_recall": avg_recall.mean(),
+                "test_f1": avg_f1.mean()
+            })
         
         # Clean up memory
         del model, checkpoint, outputs, preds
@@ -451,25 +465,37 @@ def run_testing(cfg, class_names=["Ocean", "Ice"]):
             log.warning(f"  - {failed_model}")
 
     
-@hydra.main(config_path="conf", config_name="config", version_base=None)
-def main(cfg):
-    """
-    Main function to run the comprehensive model testing.
-    """
+#@hydra.main(config_path="conf", config_name="config", version_base=None)
+#def main(cfg):
+    #"""
+    #Main function to run the comprehensive model testing.
+    #"""
     # Set up logging
-    logging.basicConfig(level=logging.INFO)
+    #logging.basicConfig(level=logging.INFO)
     
     # # Initialize wandb if needed (optional)
     # if cfg.get('use_wandb', False):
     #     wandb.init(project="ice-segmentation-evaluation", config=cfg)
     
     # Run comprehensive testing
-    run_testing(cfg, class_names=["Ocean", "Ice"])
+    #run_testing(cfg, class_names=["Ocean", "Ice"])
     
     # # Finish wandb if initialized
     # if cfg.get('use_wandb', False):
     #     wandb.finish()
 
+@hydra.main(config_path="conf", config_name="config", version_base=None)
+def main(cfg: DictConfig):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    test_loader = ...  # build your DataLoader
+    evaluate_single_model(
+        model_path=cfg.model.checkpoint,
+        test_loader=test_loader,
+        device=device,
+        cfg=cfg,
+        model_name=cfg.model.name,
+        architecture=cfg.model.name
+    )
 
 if __name__ == "__main__":
     main()
