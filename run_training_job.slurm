@@ -6,7 +6,8 @@
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=32
 #SBATCH --mem=128G
-#SBATCH --time=48:00:00
+#SBATCH --time=4:00:00
+#SBATCH --exclude=hpdar04c03s03,hpdar04c02s04
 
 # Projektverzeichnis
 PROJECT_DIR="/dss/dsstbyfs02/pn49ci/pn49ci-dss-0000/Antartic_Database/git-project/shelf-bench-hedunet/shelfbench-hedunet"
