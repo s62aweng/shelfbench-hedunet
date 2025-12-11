@@ -20,7 +20,9 @@ module load micromamba
 eval "$(micromamba shell hook --shell bash)"
 
 # Umgebung aktivieren
-micromamba activate shelfbench-hedunet-env
+#micromamba activate shelfbench-hedunet-env
+micromamba activate shelfbench-hedunet-py310
+
 
 # Sicherheitstest: Python vorhanden?
 if ! command -v python &> /dev/null; then
