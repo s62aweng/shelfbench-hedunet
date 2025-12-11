@@ -95,12 +95,23 @@ def evaluate_model(model_path, val_loader, device, cfg, log):
         for images, masks in val_loader:
             images = images.to(device)
             masks = masks.to(device).long()
-
+            ######################################################
+            ##### Anpassung für Hedunet mit Deep Supervision #####
+            ######################################################
             outputs = model(images)
+
+            # Loss kann mit Liste umgehen
             loss = loss_function(outputs, masks)
             total_loss += loss.item()
 
-            preds = torch.argmax(outputs, dim=1)
+            # Für Metriken nur Hauptoutput nehmen
+            if isinstance(outputs, (list, tuple)):
+                main_output = outputs[0]
+            else:
+                main_output = outputs
+
+            preds = torch.argmax(main_output, dim=1)
+            ######################################################
 
             # Calculate metrics
             batch_precision, batch_recall, batch_f1 = calculate_metrics(

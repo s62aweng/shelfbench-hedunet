@@ -62,7 +62,6 @@ class HEDUNet(nn.Module):
             # no merging
             pass
 
-
     def forward(self, x):
         B, C, H, W = x.shape
         x = self.init[str(C)](x)

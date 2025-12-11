@@ -12,13 +12,12 @@ from data_processing.ice_data import IceDataset
 import torch.nn as nn
 import torch.optim as optim
 from monai.losses import DiceLoss, DiceCELoss, FocalLoss
-from combined_loss import CombinedLoss
+from combined_loss import CombinedLoss, HEDUNetLoss
 from models.ViT import create_vit_large_16
 from models.DinoV3 import DINOv3SegmentationModel
 from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts
 from omegaconf import DictConfig
 from typing import Tuple
-
 
 
 def get_data_loaders(cfg: DictConfig) -> Tuple[DataLoader, DataLoader]:
@@ -60,7 +59,6 @@ def get_data_loaders(cfg: DictConfig) -> Tuple[DataLoader, DataLoader]:
     # )
 
     return train_loader, val_loader #, test_loader
-
 
 def load_model(cfg: DictConfig, device: torch.device) -> nn.Module:
     model_name = cfg["model"]["name"]
@@ -113,7 +111,6 @@ def load_model(cfg: DictConfig, device: torch.device) -> nn.Module:
             num_classes=classes                      # aus cfg["model"]["classes"]
         )
 
-
     elif model_name == "ViT":
         img_size = cfg["model"]["img_size"]
         model = create_vit_large_16(
@@ -146,9 +143,9 @@ def load_model(cfg: DictConfig, device: torch.device) -> nn.Module:
     print(f"Model {model_name} with {encoder_name} loaded on {device}.")
     return model
 
-
 def get_loss_function(cfg: DictConfig) -> nn.Module:
     loss_name = cfg["training"]["loss_function"]
+
     if loss_name == "DiceLoss":
         return DiceLoss(to_onehot_y=False, softmax=True)
     elif loss_name == "DiceCELoss":
@@ -158,11 +155,18 @@ def get_loss_function(cfg: DictConfig) -> nn.Module:
     elif loss_name == "CrossEntropyLoss":
         return nn.CrossEntropyLoss()
     elif loss_name == "CombinedLoss":
-        return CombinedLoss(dice_weight=0.5, focal_weight=0.5)
+        return CombinedLoss(
+            weights=cfg["training"].get("weights", None),
+            dice_weight=cfg["training"].get("dice_weight", 0.5),
+            focal_weight=cfg["training"].get("focal_weight", 0.5),
+        )
+    elif loss_name == "HEDUNetLoss":
+        return HEDUNetLoss(
+            side_weight=cfg["training"].get("side_weight", 0.5)
+        )
     else:
         raise ValueError(f"Loss function {loss_name} not recognized.")
-    
-
+  
 def get_optimizer(cfg: DictConfig, model: nn.Module) -> optim.Optimizer:
     optimizer_name = cfg["training"]["optimizer"]
     learning_rate = float(cfg["training"]["learning_rate"])

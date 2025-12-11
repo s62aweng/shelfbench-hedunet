@@ -11,7 +11,6 @@ from metrics import calculate_metrics, calculate_iou_metrics
 from typing import Optional
 import gc
 
-
 def train_one_epoch(
     model: nn.Module,
     train_loader: DataLoader,
@@ -36,9 +35,21 @@ def train_one_epoch(
 
         optimizer.zero_grad()
 
+        #############################
+        #angepasst an das Hedunet mit Deep Supervision
+        ##############################
         prediction = model(image)
 
+        # Loss funktioniert mit Tensor oder Liste
         loss = loss_function(prediction, mask)
+
+        # Für Debugging/Visualisierung nur Hauptoutput nehmen
+        if isinstance(prediction, (list, tuple)):
+            main_output = prediction[0]
+        else:
+            main_output = prediction
+        ##############################
+
         loss.backward()
         optimizer.step()
         if cfg.get("use_wandb", False):
@@ -92,14 +103,23 @@ def validate_with_metrics(
             one_hot_masks = (
                 F.one_hot(masks.long(), num_classes=2).squeeze(1).permute(0, 3, 1, 2)
             )
-
+            #########################
+            #angepasst an das Hedunet mit Deep Supervision
+            #########################
             outputs = model(images)
 
+            # Loss kann mit Liste umgehen
             loss = loss_function(outputs, one_hot_masks)
             val_loss += loss.item()
 
+            # Für Metriken nur Hauptoutput nehmen
+            if isinstance(outputs, (list, tuple)):
+                main_output = outputs[0]
+            else:
+                main_output = outputs
+
             # Get predictions
-            preds = torch.argmax(outputs, dim=1)
+            preds = torch.argmax(main_output, dim=1)
 
             # Calculate metrics for this batch
             batch_precision, batch_recall, batch_f1 = calculate_metrics(
@@ -108,6 +128,7 @@ def validate_with_metrics(
             batch_class_ious, batch_mean_iou = calculate_iou_metrics(
                 masks, preds, num_classes, device
             )
+            ###########################
 
             # Accumulate metrics
             total_precision += torch.tensor(batch_precision, device=device)

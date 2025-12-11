@@ -48,7 +48,6 @@ def init_wandb(cfg: DictConfig):
             if hasattr(wandb.config, "device"):
                 cfg.device = wandb.config.device
 
-
 def save_model(
     path: str,
     model: nn.Module,

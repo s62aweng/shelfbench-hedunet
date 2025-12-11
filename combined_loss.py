@@ -1,6 +1,29 @@
 from monai.losses import DiceLoss, DiceCELoss, FocalLoss
+import torch
 import torch.nn as nn
 
+class HEDUNetLoss(nn.Module):
+    """
+    Loss für HED-UNet mit Deep Supervision:
+    Hauptausgabe + Side-Outputs
+    """
+    def __init__(self, side_weight=0.5):
+        super().__init__()
+        self.bce = nn.BCEWithLogitsLoss()
+        self.side_weight = side_weight
+
+    def forward(self, outputs, targets):
+        # outputs = [main_output, side1, side2, ...]
+        main_out = outputs[0]
+        side_outs = outputs[1:]
+
+        loss_main = self.bce(main_out, targets)
+        if side_outs:
+            loss_sides = sum(self.bce(side, targets) for side in side_outs) / len(side_outs)
+        else:
+            loss_sides = 0.0
+
+        return loss_main + self.side_weight * loss_sides
 
 class CombinedLoss(nn.Module):
     def __init__(self, weights=None, dice_weight=0.5, focal_weight=0.5):
