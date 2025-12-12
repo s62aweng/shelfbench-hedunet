@@ -38,8 +38,8 @@ nvidia-smi
 python "$PROJECT_DIR/ideal_train_file.py" \
     --config-path "$PROJECT_DIR/conf" \
     --config-name config \
-    model_name=HEDUNet \
-    loss_function=HEDUNetLoss
+    model.name=HEDUNet \
+    training.loss_function=HEDUNetLoss
 
 #python "$PROJECT_DIR/ideal_train_file.py" \
 #    --config "$PROJECT_DIR/conf/config.yml" \
