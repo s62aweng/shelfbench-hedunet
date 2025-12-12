@@ -25,7 +25,7 @@ def init_wandb(cfg: DictConfig):
         wandb.init(
             project="Shelf-BENCH_HED-UNet", # old name - change to Shelf-BENCH
             # name="trial_initial_runs",
-            entity="s62aweng", #change to your wandb username
+            entity="uni-bonn-de", #change to your wandb username
             settings=wandb.Settings(start_method="thread"),
             job_type="training",
             save_code=False,
