@@ -21,7 +21,7 @@ eval "$(micromamba shell hook --shell bash)"
 
 # Umgebung aktivieren
 #micromamba activate shelfbench-hedunet-env
-micromamba activate shelfbench-hedunet-py310
+micromamba activate shelfbench-hedunet-py311
 
 
 # Sicherheitstest: Python vorhanden?
