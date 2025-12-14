@@ -103,12 +103,13 @@ def load_model(cfg: DictConfig, device: torch.device) -> nn.Module:
         args = cfg["model"]["args"]
 
         model = HEDUNet(
-            input_channels=args["input_channels"],   # Liste oder int
-            base_channels=args["base_channels"],     # z.B. 8
-            stack_height=args["stack_height"],       # z.B. 5
-            merging=args["merging"],                 # z.B. "attention"
-            batch_norm=args["batch_norm"],           # True/False
-            num_classes=classes                      # aus cfg["model"]["classes"]
+        input_channels=args["input_channels"],   
+        output_channels=classes,                
+        base_channels=args["base_channels"],
+        stack_height=args["stack_height"],
+        merging=args["merging"],
+        batch_norm=args["batch_norm"],
+        deep_supervision=args["deep_supervision"]
         )
 
     elif model_name == "ViT":
