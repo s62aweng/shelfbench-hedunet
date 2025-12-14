@@ -4,10 +4,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class HEDUNetLoss(nn.Module):
-    """
-    Loss für HED-UNet mit Deep Supervision:
-    Hauptausgabe + Side-Outputs
-    """
     def __init__(self, side_weight=0.5, num_classes=2):
         super().__init__()
         self.bce = nn.BCEWithLogitsLoss()
@@ -15,15 +11,16 @@ class HEDUNetLoss(nn.Module):
         self.num_classes = num_classes
 
     def forward(self, outputs, targets):
-        # outputs = [main_output, side1, side2, ...]
         main_out = outputs[0]
         side_outs = outputs[1:]
 
-        # Targets von (B,H,W) → (B,num_classes,H,W), Float
-        targets = targets.squeeze(1)  # entfernt die Kanal-Dimension, falls vorhanden
+        # sicherstellen, dass targets die Form (B,H,W) haben
+        if targets.dim() == 4 and targets.size(1) == 1:
+            targets = targets.squeeze(1)
+
+        # One-Hot Konvertierung
         targets_oh = F.one_hot(targets.long(), num_classes=self.num_classes)  # (B,H,W,C)
         targets_oh = targets_oh.permute(0, 3, 1, 2).float()                   # (B,C,H,W)
-
 
         loss_main = self.bce(main_out, targets_oh)
         if side_outs:
