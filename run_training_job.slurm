@@ -38,17 +38,15 @@ fi
 echo "CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES"
 nvidia-smi
 
+# Bibliothekspfad konfigurieren
+export LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH 
+echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
 # Training starten
 python "$PROJECT_DIR/ideal_train_file.py" \
     --config-path "$PROJECT_DIR/conf" \
     --config-name config \
     model.name=HEDUNet \
     training.loss_function=HEDUNetLoss
-
-#python "$PROJECT_DIR/ideal_train_file.py" \
-#    --config "$PROJECT_DIR/conf/config.yml" \
-#    --model_name "HEDUNet" \
-#    --loss_function "HEDUNetLoss"
 
 
 
