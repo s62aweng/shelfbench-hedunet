@@ -59,7 +59,7 @@ def walk_and_log(root_dir, log_file):
                 f.write(f"  Dtypes (sampled): {result['dtypes']}\n")
 
 if __name__ == "__main__":
-    dataset_root = "/dss/dsstbyfs02/pn49ci/pn49ci-dss-0000/Antartic_Database/data/Shelf-Bench/Shelf-Bench-tiles-png"
+    dataset_root = "/dss/dsstbyfs02/pn49ci/pn49ci-dss-0000/Antartic_Database/data/Shelf-Bench/Shelf-Bench-tiles-png-masknorm"
     log_path = "/dss/dsstbyfs02/pn49ci/pn49ci-dss-0000/Antartic_Database/git-project/shelf-bench-hedunet/shelfbench-hedunet/dataset_analysis.txt"
     walk_and_log(dataset_root, log_path)
     print(f"Analysis written to {log_path}")
