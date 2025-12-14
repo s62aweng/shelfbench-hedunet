@@ -39,8 +39,18 @@ echo "CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES"
 nvidia-smi
 
 # Bibliothekspfad konfigurieren
-export LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH 
+
+# Bibliothekspfad strikt setzen (nur Conda-Forge Libs)
+export LD_LIBRARY_PATH=$CONDA_PREFIX/lib
 echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
+
+# Debug: welche libtiff/libjpeg werden von rasterio geladen?
+echo "Check welche Bibliotheken rasterio/_base.so nutzt:"
+ldd $CONDA_PREFIX/lib/python3.11/site-packages/rasterio/_base*.so | egrep "libtiff|jpeg"
+
+# Debug: Rasterio-Version prüfen
+python -c "import rasterio; print('Rasterio version:', rasterio.__version__)"
+
 # Training starten
 python "$PROJECT_DIR/ideal_train_file.py" \
     --config-path "$PROJECT_DIR/conf" \
