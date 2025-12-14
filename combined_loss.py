@@ -20,8 +20,10 @@ class HEDUNetLoss(nn.Module):
         side_outs = outputs[1:]
 
         # Targets von (B,H,W) → (B,num_classes,H,W), Float
+        targets = targets.squeeze(1)  # entfernt die Kanal-Dimension, falls vorhanden
         targets_oh = F.one_hot(targets.long(), num_classes=self.num_classes)  # (B,H,W,C)
         targets_oh = targets_oh.permute(0, 3, 1, 2).float()                   # (B,C,H,W)
+
 
         loss_main = self.bce(main_out, targets_oh)
         if side_outs:
