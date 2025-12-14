@@ -95,8 +95,8 @@ def load_model(cfg: DictConfig, device: torch.device) -> nn.Module:
         )
 
     elif model_name == "HEDUNet":
-        from models.hed_unet.deep_learning.model import HEDUNet
-
+        from models.hed_unet.deep_learning.models.hed_unet import HEDUNet
+        
         encoder_name = "HED-UNet"
 
         # Parameter aus der Config
