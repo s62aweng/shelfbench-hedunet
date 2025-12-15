@@ -10,6 +10,8 @@ import cv2
 import albumentations as A
 from pathlib import Path
 from paths import ROOT_GWS, ROOT_LOCAL
+import random, numpy as np, torch
+from PIL import Image
 
 class IceDataset(Dataset):
 
@@ -85,6 +87,21 @@ class IceDataset(Dataset):
             self.transform = A.Compose([])
             
         self.normalize = A.Normalize(mean=0.3047126829624176, std=0.32187142968177795)
+        self._quick_analyze(self.mask_dir)   # Masken checken
+        self._quick_analyze(self.image_dir)  # Bilder checken
+
+    def _quick_analyze(self, folder_path, sample_size=10):
+        png_files = [fn for fn in os.listdir(folder_path) if fn.lower().endswith(".png")]
+        sample = random.sample(png_files, min(sample_size, len(png_files)))
+        min_vals, max_vals = [], []
+        for fn in sample:
+            arr = np.array(Image.open(os.path.join(folder_path, fn)))
+            t = torch.from_numpy(arr)
+            min_vals.append(float(t.min()))
+            max_vals.append(float(t.max()))
+        print("---------------------------------------")
+        print(f"[Dataset check] {folder_path}: min={min(min_vals)}, max={max(max_vals)}")
+        print("---------------------------------------")
 
     def __len__(self):
         """
@@ -123,7 +140,6 @@ class IceDataset(Dataset):
 
 
         return image_tensor, mask_tensor
-    
  
     @staticmethod
     def create_test_datasets(parent_dir):
