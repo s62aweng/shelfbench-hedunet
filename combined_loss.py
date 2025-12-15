@@ -3,45 +3,33 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-
-class HEDUNetLoss(nn.Module):
+class HEDUNetCrossEntropyLoss(nn.Module):
     """
-    Loss für HED-UNet mit Deep Supervision:
-    Hauptausgabe + Side-Outputs
+    CrossEntropy over 2 classes with deep supervision. No one-hot needed.
     """
-    def __init__(self, side_weight=0.5, num_classes=2):
+    def __init__(self, side_weight=0.5):
         super().__init__()
-        self.bce = nn.BCEWithLogitsLoss()
+        self.ce = nn.CrossEntropyLoss()
         self.side_weight = side_weight
-        self.num_classes = num_classes
 
     def forward(self, outputs, targets):
-        # outputs = [main_output, side1, side2, ...]
         main_out = outputs[0]
         side_outs = outputs[1:]
 
-        # sicherstellen, dass targets die Form (B,H,W) haben
-        # (kommt jetzt so aus deinem Dataset)
+        # Ensure targets shape is (B,H,W) and type long
         if targets.dim() == 4 and targets.size(1) == 1:
             targets = targets.squeeze(1)
+        targets = targets.long()
+        assert targets.dim() == 3, f"Targets must be (B,H,W), got {tuple(targets.shape)}"
 
-        # One-Hot Konvertierung: (B,H,W) -> (B,C,H,W)
-        targets_oh = F.one_hot(targets, num_classes=self.num_classes)  # (B,H,W,C)
-        targets_oh = targets_oh.permute(0, 3, 1, 2).float()            # (B,C,H,W)
-
-        # Hauptausgabe
-        loss_main = self.bce(main_out, targets_oh)
-
-        # Side-Outputs
+        loss_main = self.ce(main_out, targets)
         if side_outs:
-            loss_sides = sum(self.bce(side, targets_oh) for side in side_outs) / len(side_outs)
+            loss_sides = sum(self.ce(side, targets) for side in side_outs) / len(side_outs)
         else:
             loss_sides = 0.0
 
         return loss_main + self.side_weight * loss_sides
+
 
 class CombinedLoss(nn.Module):
     def __init__(self, weights=None, dice_weight=0.5, focal_weight=0.5):
