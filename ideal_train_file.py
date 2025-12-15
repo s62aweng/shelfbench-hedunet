@@ -93,25 +93,24 @@ def main(cfg: DictConfig):
     # Check if checkpoint exists and load if specified
     start_epoch = 0
     if cfg.get("load_path", False) and os.path.exists(checkpoint_path):
-        log.info(f"Loading model weights from {checkpoint_path}")
-        checkpoint = torch.load(
-            checkpoint_path, map_location=device, weights_only=False
-        )
-        
-        print(f"Checkpoint keys: {list(checkpoint.keys()) if checkpoint else 'None'}")
-        model.load_state_dict(checkpoint["model_state_dict"])
-        optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
-        # Only load scheduler state if scheduler exists
-        if scheduler is not None and "scheduler_state_dict" in checkpoint:
-            scheduler.load_state_dict(checkpoint["scheduler_state_dict"])
-        elif scheduler is None:
-            log.info("Scheduler is None - skipping scheduler state loading")
-        start_epoch = checkpoint.get("epoch", 0) + 1  # Resume from next epoch
-        log.info(
-            f"Model weights loaded successfully. Resuming from epoch {start_epoch}"
-        )
-        print(f"Model weights loaded successfully. Resuming from epoch {start_epoch}")
-    else:
+        log.info(f"Checkpoint {checkpoint_path} found, but starting fresh training.")
+    ################### continue from checkpoint is disabled for now ###################
+    #    log.info(f"Loading model weights from {checkpoint_path}")
+    #    checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
+    #    print(f"Checkpoint keys: {list(checkpoint.keys()) if checkpoint else 'None'}")
+    #    model.load_state_dict(checkpoint["model_state_dict"])
+    #    optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+    #    # Only load scheduler state if scheduler exists
+    #    if scheduler is not None and "scheduler_state_dict" in checkpoint:
+    #        scheduler.load_state_dict(checkpoint["scheduler_state_dict"])
+    #    elif scheduler is None:
+    #        log.info("Scheduler is None - skipping scheduler state loading")
+    #    start_epoch = checkpoint.get("epoch", 0) + 1  # Resume from next epoch
+    #    log.info(
+    #        f"Model weights loaded successfully. Resuming from epoch {start_epoch}"
+    #    )
+    #    print(f"Model weights loaded successfully. Resuming from epoch {start_epoch}")
+    #else:
         log.info(
             "No valid load_path specified or file does not exist. Training from scratch."
         )
