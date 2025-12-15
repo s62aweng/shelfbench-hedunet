@@ -128,16 +128,15 @@ class IceDataset(Dataset):
             raise ValueError(f"Could not load image: {image_path}")
         if mask_np is None:
             raise ValueError(f"Could not load mask: {mask_path}")
+        
+        image_np = image_np.astype(np.float32) / 255.0
 
         transformed = self.transform(image=image_np, mask=mask_np)
         image_transformed, mask_transformed = transformed["image"], transformed["mask"]
         image_normalized = self.normalize(image=image_transformed)["image"]
 
         image_tensor = torch.from_numpy(image_normalized).float().unsqueeze(0)
-
-        #mask_tensor = torch.from_numpy(mask_transformed).float().unsqueeze(0)
         mask_tensor = torch.from_numpy(mask_transformed).long()
-
 
         return image_tensor, mask_tensor
  
