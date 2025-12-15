@@ -6,7 +6,7 @@ import torch.nn.functional as F
 class HEDUNetLoss(nn.Module):
     """
     BCEWithLogits over 2 classes with deep supervision.
-    Converts integer targets (B,H,W) to one-hot (B,2,H,W).
+    Accepts targets as either (B,H,W) integer labels or (B,2,H,W) one-hot.
     """
     def __init__(self, side_weight=0.5, num_classes=2, debug_once=True):
         super().__init__()
@@ -15,25 +15,6 @@ class HEDUNetLoss(nn.Module):
         self.num_classes = num_classes
         self._debug_once = debug_once
 
-    def _ensure_label_shape(self, targets: torch.Tensor) -> torch.Tensor:
-        # Remove any singleton dims beyond (B,H,W), e.g. (B,1,H,W), (B,H,W,1), (B,1,H,W,1)
-        # Keep the batch dimension intact.
-        while targets.dim() > 3:
-            # Prefer removing trailing singleton first, then channel singleton
-            if targets.size(-1) == 1:
-                targets = targets.squeeze(-1)
-            elif targets.size(1) == 1 and targets.dim() == 4:
-                targets = targets.squeeze(1)
-            else:
-                # If there’s an unexpected extra dim, try a generic squeeze
-                squeezed = targets.squeeze()
-                # Restore batch dimension if squeeze collapsed it
-                if squeezed.dim() == targets.dim() - 1:
-                    targets = squeezed
-                else:
-                    break
-        return targets
-
     def forward(self, outputs, targets):
         main_out = outputs[0]
         side_outs = outputs[1:]
@@ -41,20 +22,27 @@ class HEDUNetLoss(nn.Module):
         if self._debug_once:
             print(f"[HEDUNetLoss] incoming main_out shape: {tuple(main_out.shape)}")
             print(f"[HEDUNetLoss] incoming targets shape: {tuple(targets.shape)}")
-            self._debug_once = False  # only print once
+            self._debug_once = False
 
-        # 1) Ensure targets are integer class indices and shape (B,H,W)
-        if targets.dtype != torch.long:
-            targets = targets.long()
+        # Normalize targets shape/type
+        if targets.dim() == 4 and targets.size(1) == 1:
+            targets = targets.squeeze(1)
 
-        targets = self._ensure_label_shape(targets)
-        assert targets.dim() == 3, f"Targets must be (B,H,W), got {tuple(targets.shape)}"
+        # Branch: indices vs one-hot
+        if targets.dim() == 3:
+            # (B,H,W) integer labels -> one-hot
+            if targets.dtype != torch.long:
+                targets = targets.long()
+            targets_oh = F.one_hot(targets, num_classes=self.num_classes)  # (B,H,W,C)
+            targets_oh = targets_oh.permute(0, 3, 1, 2).contiguous().float()  # (B,C,H,W)
+        elif targets.dim() == 4 and targets.size(1) == self.num_classes:
+            # (B,C,H,W) one-hot -> use directly
+            targets_oh = targets.float()
+        else:
+            raise AssertionError(
+                f"Targets must be (B,H,W) or (B,{self.num_classes},H,W), got {tuple(targets.shape)}"
+            )
 
-        # 2) One-hot to (B,C,H,W)
-        targets_oh = F.one_hot(targets, num_classes=self.num_classes)  # (B,H,W,C)
-        targets_oh = targets_oh.permute(0, 3, 1, 2).contiguous().float()  # (B,C,H,W)
-
-        # 3) Compute loss
         loss_main = self.bce(main_out, targets_oh)
         if side_outs:
             loss_sides = sum(self.bce(side, targets_oh) for side in side_outs) / len(side_outs)
@@ -62,6 +50,7 @@ class HEDUNetLoss(nn.Module):
             loss_sides = 0.0
 
         return loss_main + self.side_weight * loss_sides
+
 
 class CombinedLoss(nn.Module):
     def __init__(self, weights=None, dice_weight=0.5, focal_weight=0.5):
