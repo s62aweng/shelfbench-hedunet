@@ -140,7 +140,9 @@ class IceDataset(Dataset):
         image_normalized = self.normalize(image=image_transformed)["image"]
 
         image_tensor = torch.from_numpy(image_normalized).float().unsqueeze(0)
+        mask_transformed = (mask_transformed // 255).astype(np.uint8)
         mask_tensor = torch.from_numpy(mask_transformed).long()
+
 
         return image_tensor, mask_tensor
  
