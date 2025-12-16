@@ -566,8 +566,8 @@ class SatellitePreprocessor:
 
 #Main configuration 
 if __name__ == "__main__":
-    BASE_DATA_DIR = ROOT_GWS / "benchmark_data_CB" / "ICE-BENCH" #old name - change to Shelf-Bench
-    OUTPUT_DIR = ROOT_GWS / "benchmark_data_CB" / "ICE-BENCH" / "preprocessed_data"
+    BASE_DATA_DIR = "/dss/dsstbyfs02/pn49ci/pn49ci-dss-0000/Antartic_Database/data/Shelf-Bench/Shelf-Bench-tifs"
+    OUTPUT_DIR = "/dss/dsstbyfs02/pn49ci/pn49ci-dss-0000/Antartic_Database/data/Shelf-Bench/Shelf-Bench-tiles-png-datapp"
     PATCH_SIZE = 256
     OVERLAP_TRAIN = 0 
     OVERLAP_VAL = 0
