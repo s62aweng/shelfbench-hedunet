@@ -135,7 +135,7 @@ class IceDataset(Dataset):
         image_transformed, mask_transformed = transformed["image"], transformed["mask"]
 
         # Normalize image to [0,1]
-        image_transformed = image_transformed.astype(np.float32) / 255.0
+        image_transformed = image_transformed.astype(np.float32) / 1.0
 
         # Further normalize using dataset mean/std
         image_normalized = self.normalize(image=image_transformed)["image"]
