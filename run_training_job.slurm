@@ -6,7 +6,7 @@
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=32
 #SBATCH --mem=128G
-#SBATCH --time=24:00:00
+#SBATCH --time=6:00:00
 #SBATCH --exclude=hpdar04c03s03,hpdar04c02s04
 
 # Anzeige des Home-Verzeichnisses und .netrc-Inhalts zur Fehlerbehebung
