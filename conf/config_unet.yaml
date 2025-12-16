@@ -1,0 +1,48 @@
+# base configuration
+
+defaults:
+  - _self_
+  - hydra: default
+  - override hydra/launcher: slurm
+
+paths:
+  root_local: "/dss/dsstbyfs02/pn49ci/pn49ci-dss-0000/Antartic_Database/git-project/shelf-bench-hedunet/shelfbench-hedunet"
+  root_gws: "/dss/dsstbyfs02/pn49ci/pn49ci-dss-0000/Antartic_Database"
+
+# Main configuration
+seed: 0
+name: "ice_bench_seg_unet"
+save_dir: "/dss/dsstbyfs02/pn49ci/pn49ci-dss-0000/Antartic_Database/git-project/shelf-bench-hedunet/model_outputs/"
+data_root: "/dss/dsstbyfs02/pn49ci/pn49ci-dss-0000/Antartic_Database/data/Shelf-Bench/Shelf-Bench-tiles-png-datapp"
+load_path: true
+use_wandb: true
+class_names: ["Ocean", "Ice"]
+log_freq: 200
+save_freq: 1
+num_workers: 4
+device: "cuda"
+
+model:
+  name: "Unet"
+  in_channels: 1          # Graustufen-PNG
+  classes: 2              # Ocean vs. Ice
+  img_size: 256
+  encoder_name: "resnet34"        # typischer Encoder für smp.Unet
+  encoder_weights: "imagenet"     # oder null, wenn du keine Pretrained Weights willst
+
+training:
+  batch_size: 16
+  learning_rate: 1e-4
+  weight_decay: 1e-4
+  epochs: 100
+  loss_function: "CombinedLoss"   # stabiler Standard: Dice + Focal
+  optimizer: "Adam"
+  log_interval: 100
+  gradient_clip_val: 1.0
+  accumulate_grad_batches: 1
+  mixed_precision: true
+
+data:
+  img_size: 256
+  augmentation_prob: 0.5
+  parent_dir: "/dss/dsstbyfs02/pn49ci/pn49ci-dss-0000/Antartic_Database/data/Shelf-Bench/Shelf-Bench-tiles-png-datapp"

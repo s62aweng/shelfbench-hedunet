@@ -10,7 +10,7 @@ class HEDUNetLoss(nn.Module):
     - Side outputs can be nested lists/tuples; we pick tensors and match shapes.
     - For 1-channel side outputs, we compare against the foreground mask.
     """
-    def __init__(self, side_weight=0.0, num_classes=2, debug_once=True):
+    def __init__(self, side_weight=0.5, num_classes=2, debug_once=True):
         super().__init__()
         self.bce = nn.BCEWithLogitsLoss()
         self.side_weight = side_weight

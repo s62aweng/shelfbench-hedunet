@@ -51,12 +51,20 @@ ldd $CONDA_PREFIX/lib/python3.11/site-packages/rasterio/_base*.so | egrep "libti
 # Debug: Rasterio-Version prüfen
 python -c "import rasterio; print('Rasterio version:', rasterio.__version__)"
 
-# Training starten
+# Training starten HEDUNet
+#python "$PROJECT_DIR/ideal_train_file.py" \
+#    --config-path "$PROJECT_DIR/conf" \
+#    --config-name config \
+#    model.name=HEDUNet \
+#    training.loss_function=HEDUNetLoss
+
+# Training starten UNet
 python "$PROJECT_DIR/ideal_train_file.py" \
     --config-path "$PROJECT_DIR/conf" \
-    --config-name config \
-    model.name=HEDUNet \
-    training.loss_function=HEDUNetLoss
+    --config-name config_unet \
+    model.name=Unet \
+    training.loss_function=CombinedLoss
+
 
 
 
