@@ -86,7 +86,8 @@ class IceDataset(Dataset):
             # No transforms for validation
             self.transform = A.Compose([])
             
-        self.normalize = A.Normalize(mean=0.3047126829624176, std=0.32187142968177795)
+        #self.normalize = A.Normalize(mean=0.3047126829624176, std=0.32187142968177795)
+        self.normalize = A.Normalize(mean=0.479532, std=0.246885) # updated values (self-computed)
         self._quick_analyze(self.mask_dir)   # Masken checken
         self._quick_analyze(self.image_dir)  # Bilder checken
 
