@@ -131,19 +131,26 @@ class IceDataset(Dataset):
             raise ValueError(f"Could not load mask: {mask_path}")
 
         # Apply augmentations
-        transformed = self.transform(image=image_np, mask=mask_np)
-        image_transformed, mask_transformed = transformed["image"], transformed["mask"]
+        #transformed = self.transform(image=image_np, mask=mask_np)
+        #image_transformed, mask_transformed = transformed["image"], transformed["mask"]
 
         # Normalize image to [0,1]
-        image_transformed = image_transformed.astype(np.float32) / 1.0
+        #image_transformed = image_transformed.astype(np.float32) / 255.0
 
         # Further normalize using dataset mean/std
+        #image_normalized = self.normalize(image=image_transformed)["image"]
+
+        #image_tensor = torch.from_numpy(image_normalized).float().unsqueeze(0)
+        #mask_transformed = (mask_transformed // 255).astype(np.uint8)
+        #mask_tensor = torch.from_numpy(mask_transformed).long()
+        
+        transformed = self.transform(image=image_np, mask=mask_np)
+        image_transformed, mask_transformed = transformed["image"], transformed["mask"]
         image_normalized = self.normalize(image=image_transformed)["image"]
 
         image_tensor = torch.from_numpy(image_normalized).float().unsqueeze(0)
-        mask_transformed = (mask_transformed // 255).astype(np.uint8)
-        mask_tensor = torch.from_numpy(mask_transformed).long()
 
+        mask_tensor = torch.from_numpy(mask_transformed).float().unsqueeze(0)
 
         return image_tensor, mask_tensor
  
