@@ -13,7 +13,7 @@ paths:
 seed: 0
 name: "ice_bench_seg"
 save_dir: "/dss/dsstbyfs02/pn49ci/pn49ci-dss-0000/Antartic_Database/git-project/shelf-bench-hedunet/model_outputs/"
-data_root: "/dss/dsstbyfs02/pn49ci/pn49ci-dss-0000/Antartic_Database/data/Shelf-Bench/Shelf-Bench-tiles-png-masknorm"
+data_root: "/dss/dsstbyfs02/pn49ci/pn49ci-dss-0000/Antartic_Database/data/Shelf-Bench/Shelf-Bench-tiles-png-datapp"
 load_path: true
 use_wandb: true
 class_names: ["Ocean", "Ice"]
@@ -51,4 +51,4 @@ training:
 data:
   img_size: 256
   augmentation_prob: 0.5
-  parent_dir: "/dss/dsstbyfs02/pn49ci/pn49ci-dss-0000/Antartic_Database/data/Shelf-Bench/Shelf-Bench-tiles-png-masknorm"
+  parent_dir: "/dss/dsstbyfs02/pn49ci/pn49ci-dss-0000/Antartic_Database/data/Shelf-Bench/Shelf-Bench-tiles-png-datapp"
