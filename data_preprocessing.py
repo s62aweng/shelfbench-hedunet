@@ -583,4 +583,4 @@ if __name__ == "__main__":
         create_test=True
     )
     
-    preprocessor.process_all(process_trainval=False, process_test=True)
+    preprocessor.process_all(process_trainval=True, process_test=True)
