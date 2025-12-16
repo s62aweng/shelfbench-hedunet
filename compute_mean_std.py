@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 
 # Pfad zu den Trainingsbildern
-TRAIN_IMG_DIR = "/dss/dsstbyfs02/pn49ci/pn49ci-dss-0000/Antartic_Database/data/Shelf-Bench/Shelf-Bench-tiles-png-datapp/train/images"
+TRAIN_IMG_DIR = "/dss/dsstbyfs02/pn49ci/pn49ci-dss-0000/Antartic_Database/data/Shelf-Bench/Shelf-Bench-tiles-png/train/images"
 
 def compute_mean_std(img_dir, max_files=None):
     files = [f for f in os.listdir(img_dir) if f.endswith(".png")]
