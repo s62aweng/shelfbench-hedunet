@@ -579,7 +579,7 @@ if __name__ == "__main__":
         patch_size=PATCH_SIZE,
         overlap_train=OVERLAP_TRAIN,
         overlap_val=OVERLAP_VAL,
-        create_trainval=False,   # important
+        create_trainval=True,   # important
         create_test=True
     )
     
