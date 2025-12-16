@@ -86,8 +86,9 @@ class IceDataset(Dataset):
             # No transforms for validation
             self.transform = A.Compose([])
             
-        #self.normalize = A.Normalize(mean=0.3047126829624176, std=0.32187142968177795)
-        self.normalize = A.Normalize(mean=0.479532, std=0.246885) # updated values (self-computed)
+        self.normalize = A.Normalize(mean=0.3047126829624176, std=0.32187142968177795)
+        #self.normalize = A.Normalize(mean=0.479532, std=0.246885) # updated values (self-computed)
+        #self-computed values from provided png-dataset: Dataset mean: 0.474830, std: 0.246727
         self._quick_analyze(self.mask_dir)   # Masken checken
         self._quick_analyze(self.image_dir)  # Bilder checken
 
@@ -143,7 +144,7 @@ class IceDataset(Dataset):
         #image_tensor = torch.from_numpy(image_normalized).float().unsqueeze(0)
         #mask_transformed = (mask_transformed // 255).astype(np.uint8)
         #mask_tensor = torch.from_numpy(mask_transformed).long()
-        
+
         transformed = self.transform(image=image_np, mask=mask_np)
         image_transformed, mask_transformed = transformed["image"], transformed["mask"]
         image_normalized = self.normalize(image=image_transformed)["image"]
