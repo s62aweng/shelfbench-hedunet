@@ -567,7 +567,7 @@ class SatellitePreprocessor:
 #Main configuration 
 if __name__ == "__main__":
     BASE_DATA_DIR = "/dss/dsstbyfs02/pn49ci/pn49ci-dss-0000/Antartic_Database/data/Shelf-Bench/Shelf-Bench-tifs"
-    OUTPUT_DIR = "/dss/dsstbyfs02/pn49ci/pn49ci-dss-0000/Antartic_Database/data/Shelf-Bench/Shelf-Bench-tiles-png-datapp"
+    OUTPUT_DIR = "/dss/dsstbyfs02/pn49ci/pn49ci-dss-0000/Antartic_Database/data/Shelf-Bench/Shelf-Bench-tiles-png-test"
     PATCH_SIZE = 256
     OVERLAP_TRAIN = 0 
     OVERLAP_VAL = 0
